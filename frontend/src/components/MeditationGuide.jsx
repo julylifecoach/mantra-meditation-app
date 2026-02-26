@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function MeditationGuide() {
-    const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 minutes in seconds
+    const [selectedDuration, setSelectedDuration] = useState(15);
+    const [timeLeft, setTimeLeft] = useState(15 * 60);
     const [isActive, setIsActive] = useState(false);
+    const audioRef = React.useRef(new Audio('/sound_bowl.m4a'));
     const [breathingPhase, setBreathingPhase] = useState('Inhale'); // Inhale, Hold, Exhale
     const [showJournal, setShowJournal] = useState(false);
     const [reflection, setReflection] = useState('');
@@ -12,6 +14,13 @@ export default function MeditationGuide() {
 
     // Retrieve the user's daily mantra
     const savedMantra = localStorage.getItem('aura_daily_mantra') || '';
+
+    // Handle duration changes
+    useEffect(() => {
+        if (!isActive) {
+            setTimeLeft(selectedDuration * 60);
+        }
+    }, [selectedDuration, isActive]);
 
     // Timer Effect
     useEffect(() => {
@@ -23,6 +32,11 @@ export default function MeditationGuide() {
         } else if (timeLeft === 0 && !showJournal) {
             clearInterval(interval);
             setIsActive(false);
+
+            // Play end sound
+            audioRef.current.currentTime = 0;
+            audioRef.current.play().catch(e => console.log('Audio error:', e));
+
             // Show the journal form right here
             setShowJournal(true);
         }
@@ -48,6 +62,11 @@ export default function MeditationGuide() {
     }, [isActive]);
 
     const toggleTimer = () => {
+        if (!isActive) {
+            // Starting the timer, play sound
+            audioRef.current.currentTime = 0;
+            audioRef.current.play().catch(e => console.log('Audio error:', e));
+        }
         setIsActive(!isActive);
     };
 
@@ -213,12 +232,35 @@ export default function MeditationGuide() {
                 {message()}
             </h3>
 
+            {(!isActive && !showJournal && timeLeft === selectedDuration * 60) && (
+                <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', animation: 'fadeIn 0.5s ease-out' }}>
+                    {[5, 10, 15, 40].map(duration => (
+                        <button
+                            key={duration}
+                            onClick={() => setSelectedDuration(duration)}
+                            style={{
+                                background: selectedDuration === duration ? 'rgba(139, 92, 246, 0.3)' : 'transparent',
+                                border: selectedDuration === duration ? '1px solid var(--accent-primary)' : '1px solid var(--glass-border)',
+                                color: selectedDuration === duration ? 'var(--text-primary)' : 'var(--text-secondary)',
+                                padding: '8px 16px',
+                                borderRadius: '20px',
+                                cursor: 'pointer',
+                                transition: 'var(--transition-fast)',
+                                fontFamily: 'var(--font-sans)',
+                            }}
+                        >
+                            {duration}m
+                        </button>
+                    ))}
+                </div>
+            )}
+
             <div style={{ display: 'flex', gap: '1rem' }}>
                 <button className="btn-glow" onClick={toggleTimer} style={{ padding: '16px 40px', fontSize: '1.2rem' }}>
-                    {isActive ? 'Pause' : (timeLeft < 15 * 60 ? 'Resume' : 'Begin Journey')}
+                    {isActive ? 'Pause' : (timeLeft < selectedDuration * 60 ? 'Resume' : 'Begin Journey')}
                 </button>
 
-                {(!isActive && timeLeft < 15 * 60) && (
+                {(!isActive && timeLeft < selectedDuration * 60) && (
                     <button
                         onClick={() => { setTimeLeft(0); }} // Dev hack to skip timer and jump to journal
                         style={{ color: 'var(--text-tertiary)', padding: '12px 24px', transition: '0.2s', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '1rem' }}

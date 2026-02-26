@@ -16,7 +16,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/reflections', reflectionRoutes);
 
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', message: 'Convergence Backend is running!' });
+    res.json({ status: 'ok', message: 'Practice Backend is running!' });
 });
 
 app.listen(PORT, () => {

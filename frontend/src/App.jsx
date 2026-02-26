@@ -94,7 +94,7 @@ function App() {
       <div className="app-container">
 
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
-          <h1 className="text-gradient" style={{ fontSize: '1.5rem' }}>Convergence</h1>
+          <h1 className="text-gradient" style={{ fontSize: '1.5rem' }}>Practice</h1>
 
           <div style={{ zIndex: 100 }}>
             {isAuthenticated ? (
@@ -121,7 +121,7 @@ function App() {
             </Routes>
           ) : (
             <div style={{ textAlign: 'center', marginTop: '10rem', animation: 'fadeIn 1s ease-out' }}>
-              <h2 style={{ fontSize: '3rem', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>Welcome to Convergence</h2>
+              <h2 style={{ fontSize: '3rem', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>Welcome to Practice</h2>
               <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', fontSize: '1.1rem' }}>Please sign in to begin your mindful journey.</p>
             </div>
           )}
