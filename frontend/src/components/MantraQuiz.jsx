@@ -36,9 +36,9 @@ const QUESTIONS = [
 
 const MANTRAS = {
     peace: "I release what is out of my control. I choose peace over perfection.",
-    compassion: "My worth is not defined by my productivity. I give myself grace.",
-    clarity: "I trust my intuition. The path forward is becoming clear.",
-    grounding: "I am grounded, safe, and fully present in this moment."
+    compassion: "I accept myself for who I am today while stepping towards my goals.",
+    clarity: "Results are a side effect of walking the path.",
+    grounding: "I am thankful for this life that wasn't guaranteed to me today."
 };
 
 export default function MantraQuiz() {
