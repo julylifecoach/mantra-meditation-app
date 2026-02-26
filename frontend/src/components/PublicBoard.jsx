@@ -28,7 +28,7 @@ export default function PublicBoard() {
         // Attempt backend fetch, fallback to localStorage/mocks gracefully
         const fetchBoard = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/reflections/public');
+                const response = await fetch('/api/reflections/public');
                 if (response.ok) {
                     const data = await response.json();
                     setReflections(data);
@@ -98,7 +98,7 @@ export default function PublicBoard() {
         try {
             const token = localStorage.getItem('aura_token');
             if (token) {
-                await fetch('http://localhost:5000/api/reflections', {
+                await fetch('/api/reflections', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ title: newTitle.trim() || null, content: newReflection, isPublic: true })

@@ -15,7 +15,7 @@ export default function CalendarTrack() {
         // Load public board to simulate fetching others' reflections for that day
         const fetchPublic = async () => {
             try {
-                const res = await fetch('http://localhost:5000/api/reflections/public');
+                const res = await fetch('/api/reflections/public');
                 if (res.ok) {
                     const data = await res.json();
                     setPublicBoard(data);

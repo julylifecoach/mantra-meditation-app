@@ -52,7 +52,7 @@ export default function Dashboard() {
             // Assuming a valid JWT token in localStorage if they signed in
             const token = localStorage.getItem('aura_token');
             if (token) {
-                await fetch('http://localhost:5000/api/reflections', {
+                await fetch('/api/reflections', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

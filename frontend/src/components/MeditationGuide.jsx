@@ -121,7 +121,7 @@ export default function MeditationGuide() {
         try {
             const token = localStorage.getItem('aura_token');
             if (token) {
-                await fetch('http://localhost:5000/api/reflections', {
+                await fetch('/api/reflections', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ content: reflection, isPublic: false, mantra: savedMantra })
