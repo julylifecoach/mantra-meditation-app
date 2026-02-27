@@ -357,74 +357,105 @@ export default function MeditationGuide({ beginnerMode }) {
     if (practiceMode === 'prostration') {
         const progress = (prostrationCount / PROSTRATION_TARGET) * 100;
         return (
-            <div style={{ padding: '2rem', width: '100%', maxWidth: '600px', margin: '0 auto', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
-
-                {savedMantra && (
-                    <div style={{ marginBottom: '2rem', animation: 'fadeIn 1s ease-out' }}>
-                        <p style={{ color: '#E0E7FF', textShadow: '0 0 10px rgba(139, 92, 246, 0.6)', fontStyle: 'italic', fontSize: '1.25rem', letterSpacing: '1px' }}>
-                            "{savedMantra}"
-                        </p>
-                    </div>
-                )}
-
-                {modeSelector}
-
-                {beginnerMode && (
-                    <div style={{ marginBottom: '1.5rem', padding: '1rem', background: 'rgba(139, 92, 246, 0.08)', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.15)', maxWidth: '500px' }}>
-                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.6 }}>
-                            🙏 <strong>Prostration Practice:</strong> Tap the circle below with each bow. The goal is 108 prostrations — a sacred number representing wholeness. Take your time and move mindfully.
-                        </p>
-                    </div>
-                )}
-
-                {/* Tappable Counter Circle */}
-                <div
-                    onClick={handleProstrationTap}
+            <div style={{ position: 'relative', minHeight: '60vh' }}>
+                {/* Background Video */}
+                <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
                     style={{
-                        position: 'relative',
-                        width: '250px',
-                        height: '250px',
-                        margin: '0 auto 2rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        userSelect: 'none',
-                        WebkitTapHighlightColor: 'transparent',
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        width: '100vw',
+                        height: '100vh',
+                        objectFit: 'cover',
+                        zIndex: -2,
                     }}
                 >
-                    {/* Progress ring background */}
-                    <svg style={{ position: 'absolute', width: '100%', height: '100%', transform: 'rotate(-90deg)' }} viewBox="0 0 100 100">
-                        <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(139, 92, 246, 0.15)" strokeWidth="3" />
-                        <circle cx="50" cy="50" r="45" fill="none" stroke="var(--accent-primary)" strokeWidth="3"
-                            strokeDasharray={`${2 * Math.PI * 45}`}
-                            strokeDashoffset={`${2 * Math.PI * 45 * (1 - progress / 100)}`}
-                            strokeLinecap="round"
-                            style={{ transition: 'stroke-dashoffset 0.3s ease' }}
-                        />
-                    </svg>
-                    <div style={{ zIndex: 2, textAlign: 'center' }}>
-                        <h2 style={{ fontSize: '3.5rem', fontWeight: 300, letterSpacing: '2px', color: 'var(--text-primary)' }}>
-                            {prostrationCount}
-                        </h2>
-                        <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem' }}>of {PROSTRATION_TARGET}</p>
-                    </div>
-                </div>
+                    <source src="/prostration.mp4" type="video/mp4" />
+                </video>
+                {/* Dark overlay for readability */}
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100vw',
+                    height: '100vh',
+                    background: 'rgba(0, 0, 0, 0.55)',
+                    zIndex: -1,
+                }} />
 
-                <p style={{ color: 'var(--accent-primary)', fontSize: '1.2rem', marginBottom: '2rem', fontWeight: 400 }}>
-                    {prostrationCount === 0 ? 'Tap to begin' : prostrationCount >= PROSTRATION_TARGET ? 'Complete! 🙏' : 'Tap with each bow'}
-                </p>
+                <div style={{ padding: '2rem', width: '100%', maxWidth: '600px', margin: '0 auto', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', position: 'relative', zIndex: 1 }}>
 
-                {prostrationCount > 0 && prostrationCount < PROSTRATION_TARGET && (
-                    <button
-                        onClick={resetProstrations}
-                        style={{ color: 'var(--text-tertiary)', padding: '8px 20px', transition: '0.2s', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.9rem' }}
-                        onMouseOver={(e) => e.target.style.color = 'white'}
-                        onMouseOut={(e) => e.target.style.color = 'var(--text-tertiary)'}
+                    {savedMantra && (
+                        <div style={{ marginBottom: '2rem', animation: 'fadeIn 1s ease-out' }}>
+                            <p style={{ color: '#E0E7FF', textShadow: '0 0 10px rgba(139, 92, 246, 0.6)', fontStyle: 'italic', fontSize: '1.25rem', letterSpacing: '1px' }}>
+                                "{savedMantra}"
+                            </p>
+                        </div>
+                    )}
+
+                    {modeSelector}
+
+                    {beginnerMode && (
+                        <div style={{ marginBottom: '1.5rem', padding: '1rem', background: 'rgba(139, 92, 246, 0.08)', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.15)', maxWidth: '500px' }}>
+                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.6 }}>
+                                🙏 <strong>Prostration Practice:</strong> Tap the circle below with each bow. The goal is 108 prostrations — a sacred number representing wholeness. Take your time and move mindfully.
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Tappable Counter Circle */}
+                    <div
+                        onClick={handleProstrationTap}
+                        style={{
+                            position: 'relative',
+                            width: '250px',
+                            height: '250px',
+                            margin: '0 auto 2rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            userSelect: 'none',
+                            WebkitTapHighlightColor: 'transparent',
+                        }}
                     >
-                        Reset Count
-                    </button>
-                )}
+                        {/* Progress ring background */}
+                        <svg style={{ position: 'absolute', width: '100%', height: '100%', transform: 'rotate(-90deg)' }} viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(139, 92, 246, 0.15)" strokeWidth="3" />
+                            <circle cx="50" cy="50" r="45" fill="none" stroke="var(--accent-primary)" strokeWidth="3"
+                                strokeDasharray={`${2 * Math.PI * 45}`}
+                                strokeDashoffset={`${2 * Math.PI * 45 * (1 - progress / 100)}`}
+                                strokeLinecap="round"
+                                style={{ transition: 'stroke-dashoffset 0.3s ease' }}
+                            />
+                        </svg>
+                        <div style={{ zIndex: 2, textAlign: 'center' }}>
+                            <h2 style={{ fontSize: '3.5rem', fontWeight: 300, letterSpacing: '2px', color: 'var(--text-primary)' }}>
+                                {prostrationCount}
+                            </h2>
+                            <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem' }}>of {PROSTRATION_TARGET}</p>
+                        </div>
+                    </div>
+
+                    <p style={{ color: 'var(--accent-primary)', fontSize: '1.2rem', marginBottom: '2rem', fontWeight: 400 }}>
+                        {prostrationCount === 0 ? 'Tap to begin' : prostrationCount >= PROSTRATION_TARGET ? 'Complete! 🙏' : 'Tap with each bow'}
+                    </p>
+
+                    {prostrationCount > 0 && prostrationCount < PROSTRATION_TARGET && (
+                        <button
+                            onClick={resetProstrations}
+                            style={{ color: 'var(--text-tertiary)', padding: '8px 20px', transition: '0.2s', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.9rem' }}
+                            onMouseOver={(e) => e.target.style.color = 'white'}
+                            onMouseOut={(e) => e.target.style.color = 'var(--text-tertiary)'}
+                        >
+                            Reset Count
+                        </button>
+                    )}
+                </div>
             </div>
         );
     }
