@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-export default function CalendarTrack() {
+export default function CalendarTrack({ beginnerMode }) {
     const [history, setHistory] = useState([]);
     const [publicBoard, setPublicBoard] = useState([]);
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -64,6 +64,14 @@ export default function CalendarTrack() {
                     <h2 style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>Track</h2>
                     <p style={{ color: 'var(--text-secondary)' }}>Your consistency creates calm.</p>
                 </header>
+
+                {beginnerMode && (
+                    <div style={{ marginBottom: '1.5rem', padding: '1rem', background: 'rgba(139, 92, 246, 0.08)', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.15)' }}>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.6 }}>
+                            📅 <strong>Your Calendar:</strong> Purple-highlighted days show when you practiced. Tap any day to see your reflection and what the community shared that day.
+                        </p>
+                    </div>
+                )}
 
                 <div className="glass-panel" style={{ padding: '1.5rem' }}>
                     <h3 style={{ marginBottom: '1rem', textAlign: 'center', color: 'var(--text-primary)' }}>

@@ -41,7 +41,7 @@ const MANTRAS = {
     grounding: "I am thankful for this life that wasn't guaranteed to me today."
 };
 
-export default function MantraQuiz() {
+export default function MantraQuiz({ beginnerMode }) {
     const [step, setStep] = useState(-1); // -1 = Start, 0-2 = Quiz, 3 = Result
     const [scores, setScores] = useState({ peace: 0, compassion: 0, clarity: 0, grounding: 0 });
     const [finalMantra, setFinalMantra] = useState('');
@@ -94,9 +94,16 @@ export default function MantraQuiz() {
             {step === -1 && (
                 <div className="glass-panel" style={{ padding: '4rem 2rem', animation: 'fadeIn 0.5s ease-out' }}>
                     <h2 style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>Find Your Mantra</h2>
-                    <p style={{ color: 'var(--text-secondary)', marginBottom: '3rem', fontSize: '1.1rem' }}>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: beginnerMode ? '1.5rem' : '3rem', fontSize: '1.1rem' }}>
                         Answer three simple questions to align with the intention you need today.
                     </p>
+                    {beginnerMode && (
+                        <div style={{ marginBottom: '2rem', padding: '1rem', background: 'rgba(139, 92, 246, 0.08)', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.15)', textAlign: 'left' }}>
+                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.6 }}>
+                                🌟 <strong>How it works:</strong> You'll answer 3 quick questions about how you're feeling right now. Based on your answers, the app will suggest a personalized mantra — a short phrase to carry with you into your practice session.
+                            </p>
+                        </div>
+                    )}
                     <button className="btn-glow" onClick={handleStart} style={{ padding: '16px 40px', fontSize: '1.2rem' }}>
                         Begin Journey
                     </button>

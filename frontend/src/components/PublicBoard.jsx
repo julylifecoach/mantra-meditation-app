@@ -16,7 +16,7 @@ const MOCK_PUBLIC = [
     { id: 105, content: "First time trying this. Very calming UI.", date: new Date(Date.now() - 86400000).toISOString(), user: { displayName: "Newbie" } },
 ];
 
-export default function PublicBoard() {
+export default function PublicBoard({ beginnerMode }) {
     const [reflections, setReflections] = useState([]);
     const [loading, setLoading] = useState(true);
     const [newTitle, setNewTitle] = useState('');
@@ -121,6 +121,14 @@ export default function PublicBoard() {
                 <h2 style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>Community Reflections</h2>
                 <p style={{ color: 'var(--text-secondary)' }}>Shared thoughts from a mindful collective.</p>
             </header>
+
+            {beginnerMode && (
+                <div style={{ marginBottom: '2rem', padding: '1rem', background: 'rgba(139, 92, 246, 0.08)', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.15)', maxWidth: '700px', margin: '0 auto 2rem' }}>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.6 }}>
+                        💬 <strong>Community Board:</strong> Share your thoughts with fellow practitioners. Click any post to expand and read the full reflection. Your meditation journal entries stay private — only posts you write here are shared publicly.
+                    </p>
+                </div>
+            )}
 
             <div className="glass-panel" style={{ padding: '2rem', marginBottom: '3rem', animation: 'fadeIn 0.6s ease-out' }}>
                 <input

@@ -12,6 +12,7 @@ model User {
   googleId    String       @unique
   email       String       @unique
   displayName String
+  nickname    String?
   reflections Reflection[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
