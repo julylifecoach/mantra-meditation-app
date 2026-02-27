@@ -16,6 +16,73 @@ export default function MeditationGuide({ beginnerMode }) {
     const elapsedBeforePauseRef = useRef(0);
 
     const audioRef = useRef(new Audio('/sound_bowl.m4a'));
+    const pendingAudioRef = useRef(false);
+    const wakeLockRef = useRef(null);
+    const silentAudioCtxRef = useRef(null);
+    const silentSourceRef = useRef(null);
+
+    // Request Wake Lock to keep screen on during meditation
+    const requestWakeLock = async () => {
+        try {
+            if ('wakeLock' in navigator) {
+                wakeLockRef.current = await navigator.wakeLock.request('screen');
+                console.log('Wake Lock acquired');
+            }
+        } catch (e) {
+            console.log('Wake Lock not available, using audio keepalive');
+        }
+        // Fallback: silent audio loop keeps browser audio pipeline alive
+        try {
+            if (!silentAudioCtxRef.current) {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                silentAudioCtxRef.current = ctx;
+            }
+            const ctx = silentAudioCtxRef.current;
+            if (ctx.state === 'suspended') await ctx.resume();
+            // Create a nearly-silent oscillator to keep audio context alive
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            gain.gain.value = 0.001; // Nearly silent
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            silentSourceRef.current = osc;
+        } catch (e) {
+            console.log('Silent audio keepalive failed:', e);
+        }
+    };
+
+    const releaseWakeLock = () => {
+        if (wakeLockRef.current) {
+            wakeLockRef.current.release();
+            wakeLockRef.current = null;
+            console.log('Wake Lock released');
+        }
+        if (silentSourceRef.current) {
+            silentSourceRef.current.stop();
+            silentSourceRef.current = null;
+        }
+    };
+
+    // Re-acquire wake lock if page becomes visible while timer is active
+    useEffect(() => {
+        const handleVisibility = async () => {
+            if (document.visibilityState === 'visible') {
+                // Re-acquire wake lock if timer is still running
+                if (isActive && !wakeLockRef.current) {
+                    await requestWakeLock();
+                }
+                // Play any pending audio
+                if (pendingAudioRef.current) {
+                    pendingAudioRef.current = false;
+                    audioRef.current.currentTime = 0;
+                    audioRef.current.play().catch(e => console.log('Audio error:', e));
+                }
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibility);
+        return () => document.removeEventListener('visibilitychange', handleVisibility);
+    }, [isActive]);
 
     // --- Prostration State ---
     const [prostrationCount, setProstrationCount] = useState(0);
@@ -51,10 +118,14 @@ export default function MeditationGuide({ beginnerMode }) {
                 if (remaining === 0) {
                     clearInterval(interval);
                     setIsActive(false);
+                    releaseWakeLock();
 
-                    // Play end sound
+                    // Play end sound (set pending flag in case screen is off)
+                    pendingAudioRef.current = true;
                     audioRef.current.currentTime = 0;
-                    audioRef.current.play().catch(e => console.log('Audio error:', e));
+                    audioRef.current.play()
+                        .then(() => { pendingAudioRef.current = false; })
+                        .catch(() => { /* will play on visibilitychange */ });
 
                     setShowJournal(true);
                 }
@@ -81,22 +152,25 @@ export default function MeditationGuide({ beginnerMode }) {
         return () => clearInterval(breathInterval);
     }, [isActive]);
 
-    const toggleTimer = () => {
+    const toggleTimer = async () => {
         if (!isActive) {
-            // Starting or resuming
+            // Starting or resuming — acquire wake lock to keep screen on
+            await requestWakeLock();
             startTimestampRef.current = Date.now();
             audioRef.current.currentTime = 0;
             audioRef.current.play().catch(e => console.log('Audio error:', e));
         } else {
-            // Pausing — save elapsed time
+            // Pausing — save elapsed time and release wake lock
             const now = Date.now();
             elapsedBeforePauseRef.current += Math.floor((now - startTimestampRef.current) / 1000);
+            releaseWakeLock();
         }
         setIsActive(!isActive);
     };
 
     const skipTimer = () => {
         setIsActive(false);
+        releaseWakeLock();
         elapsedBeforePauseRef.current = 0;
         startTimestampRef.current = null;
         setTimeLeft(0);
