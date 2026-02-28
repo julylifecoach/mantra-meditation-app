@@ -200,7 +200,7 @@ export default function MeditationGuide({ beginnerMode }) {
     };
 
     const message = () => {
-        if (breathingPhase !== 'Ready') return 'The timer is working. Rest assured and focus on the sensation of your breath on the tip of your nose as it enters and leaves your nostril.';
+        if (breathingPhase !== 'Ready') return 'The timer is working. Rest assured and close your eyes.';
         else return 'Ready';
     };
 
@@ -358,35 +358,25 @@ export default function MeditationGuide({ beginnerMode }) {
         const progress = (prostrationCount / PROSTRATION_TARGET) * 100;
         return (
             <div style={{ position: 'relative', minHeight: '60vh' }}>
-                {/* Background Video */}
-                <video
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        width: '100vw',
-                        height: '100vh',
-                        objectFit: 'cover',
-                        zIndex: -2,
-                    }}
-                >
-                    <source src="/prostration.mp4" type="video/mp4" />
-                </video>
-                {/* Dark overlay for readability */}
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100vw',
-                    height: '100vh',
-                    background: 'rgba(0, 0, 0, 0.55)',
-                    zIndex: -1,
-                }} />
-
+                {beginnerMode && (
+                    <>
+                        <video
+                            autoPlay loop muted playsInline
+                            style={{
+                                position: 'fixed', top: 0, left: 0,
+                                width: '100vw', height: '100vh',
+                                objectFit: 'cover', zIndex: -2,
+                            }}
+                        >
+                            <source src="/prostration.mp4" type="video/mp4" />
+                        </video>
+                        <div style={{
+                            position: 'fixed', top: 0, left: 0,
+                            width: '100vw', height: '100vh',
+                            background: 'rgba(0, 0, 0, 0.55)', zIndex: -1,
+                        }} />
+                    </>
+                )}
                 <div style={{ padding: '2rem', width: '100%', maxWidth: '600px', margin: '0 auto', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', position: 'relative', zIndex: 1 }}>
 
                     {savedMantra && (
@@ -402,7 +392,7 @@ export default function MeditationGuide({ beginnerMode }) {
                     {beginnerMode && (
                         <div style={{ marginBottom: '1.5rem', padding: '1rem', background: 'rgba(139, 92, 246, 0.08)', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.15)', maxWidth: '500px' }}>
                             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.6 }}>
-                                🙏 <strong>Prostration Practice:</strong> Tap the circle below with each bow. The goal is 108 prostrations — a sacred number representing wholeness. Take your time and move mindfully.
+                                🙏 <strong>Prostration Practice:</strong> Tap the circle below with each bow. The goal is 108 prostrations. Take your time and move mindfully.
                             </p>
                         </div>
                     )}

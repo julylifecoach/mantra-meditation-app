@@ -16,7 +16,7 @@ const MOCK_PUBLIC = [
     { id: 105, content: "First time trying this. Very calming UI.", date: new Date(Date.now() - 86400000).toISOString(), user: { displayName: "Newbie" } },
 ];
 
-export default function PublicBoard({ beginnerMode }) {
+export default function PublicBoard({ beginnerMode, isAdmin }) {
     const [reflections, setReflections] = useState([]);
     const [loading, setLoading] = useState(true);
     const [newTitle, setNewTitle] = useState('');
@@ -221,7 +221,10 @@ export default function PublicBoard({ beginnerMode }) {
                                         {entry.title || "Untitled Reflection"}
                                     </div>
                                     <div style={{ color: 'var(--accent-primary)', textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                        {entry.user?.displayName || 'Anonymous'}
+                                        {isAdmin
+                                            ? `${entry.user?.nickname || entry.user?.displayName || 'Anonymous'}${entry.user?.nickname && entry.user?.displayName ? ` (${entry.user.displayName})` : ''}`
+                                            : (entry.user?.nickname || 'Anonymous')
+                                        }
                                     </div>
                                     <div style={{ color: 'var(--text-tertiary)', textAlign: 'right', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
                                         {getTimeAgo(entry.date || entry.createdAt)}

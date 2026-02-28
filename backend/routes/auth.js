@@ -37,7 +37,7 @@ router.post('/google', async (req, res) => {
 
         // Create a session JWT for our own API
         const sessionToken = jwt.sign(
-            { userId: user.id, email: user.email },
+            { userId: user.id, email: user.email, role: user.role },
             process.env.JWT_SECRET,
             { expiresIn: '7d' }
         );

@@ -11,6 +11,7 @@ import CalendarTrack from './components/CalendarTrack';
 import PublicBoard from './components/PublicBoard';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
+import AdminPanel from './pages/AdminPanel';
 
 function Navigation() {
   const location = useLocation();
@@ -93,11 +94,13 @@ function App() {
     localStorage.setItem('practice_beginner_mode', String(newVal));
   };
 
+  const isAdmin = userProfile?.role === 'admin';
+
   const getDisplayName = () => {
     if (!userProfile) return '';
     const realName = userProfile.displayName || userProfile.name || '';
     const nick = nickname || userProfile.nickname;
-    if (nick) return `${nick} (${realName})`;
+    if (nick) return isAdmin ? `${nick} (${realName})` : nick;
     return realName;
   };
 
@@ -254,11 +257,19 @@ function App() {
                       )}
                     </div>
 
-                    <div style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '0.75rem' }}>
+                    <div style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      {isAdmin && (
+                        <Link to="/admin" onClick={() => setShowProfileMenu(false)} style={{
+                          color: 'var(--accent-primary)', fontSize: '0.85rem',
+                          textDecoration: 'none', fontFamily: 'var(--font-sans)',
+                        }}>
+                          🛡️ Admin Panel
+                        </Link>
+                      )}
                       <button onClick={handleLogout} style={{
                         color: '#f87171', fontSize: '0.85rem',
                         background: 'none', border: 'none', cursor: 'pointer',
-                        fontFamily: 'var(--font-sans)', padding: 0,
+                        fontFamily: 'var(--font-sans)', padding: 0, textAlign: 'left',
                       }}>
                         Log Out
                       </button>
@@ -284,9 +295,10 @@ function App() {
               <Route path="/" element={<MantraQuiz beginnerMode={beginnerMode} />} />
               <Route path="/meditate" element={<MeditationGuide beginnerMode={beginnerMode} />} />
               <Route path="/track" element={<CalendarTrack beginnerMode={beginnerMode} />} />
-              <Route path="/community" element={<PublicBoard beginnerMode={beginnerMode} />} />
+              <Route path="/community" element={<PublicBoard beginnerMode={beginnerMode} isAdmin={isAdmin} />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
+              {isAdmin && <Route path="/admin" element={<AdminPanel />} />}
             </Routes>
           ) : (
             <div style={{ textAlign: 'center', marginTop: '10rem', animation: 'fadeIn 1s ease-out' }}>

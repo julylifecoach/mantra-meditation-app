@@ -24,6 +24,12 @@ router.post('/', authenticateToken, async (req, res) => {
     try {
         const { content, isPublic, mantra, title } = req.body;
 
+        // Check if user has write permission
+        const user = await prisma.user.findUnique({ where: { id: req.user.userId } });
+        if (!user || !user.canWrite) {
+            return res.status(403).json({ error: 'Write access has been revoked' });
+        }
+
         const reflection = await prisma.reflection.create({
             data: {
                 title,
@@ -62,7 +68,7 @@ router.get('/public', async (req, res) => {
             orderBy: { createdAt: 'desc' },
             include: {
                 user: {
-                    select: { displayName: true }
+                    select: { displayName: true, nickname: true }
                 }
             },
             take: 50 // Limit to recent 50
