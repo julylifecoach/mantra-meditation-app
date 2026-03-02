@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 
 export default function MeditationGuide({ beginnerMode }) {
@@ -358,24 +359,29 @@ export default function MeditationGuide({ beginnerMode }) {
         const progress = (prostrationCount / PROSTRATION_TARGET) * 100;
         return (
             <div style={{ position: 'relative', minHeight: '60vh' }}>
-                {beginnerMode && (
-                    <>
+                {beginnerMode && createPortal(
+                    <div style={{
+                        position: 'fixed', top: 0, left: 0,
+                        width: '100vw', height: '100vh',
+                        zIndex: -1, pointerEvents: 'none',
+                    }}>
                         <video
                             autoPlay loop muted playsInline
                             style={{
-                                position: 'fixed', top: 0, left: 0,
-                                width: '100vw', height: '100vh',
-                                objectFit: 'cover', zIndex: -2,
+                                position: 'absolute', top: 0, left: 0,
+                                width: '100%', height: '100%',
+                                objectFit: 'cover',
                             }}
                         >
                             <source src="/prostration.mp4" type="video/mp4" />
                         </video>
                         <div style={{
-                            position: 'fixed', top: 0, left: 0,
-                            width: '100vw', height: '100vh',
-                            background: 'rgba(0, 0, 0, 0.55)', zIndex: -1,
+                            position: 'absolute', top: 0, left: 0,
+                            width: '100%', height: '100%',
+                            background: 'rgba(0, 0, 0, 0.55)',
                         }} />
-                    </>
+                    </div>,
+                    document.body
                 )}
                 <div style={{ padding: '2rem', width: '100%', maxWidth: '600px', margin: '0 auto', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', position: 'relative', zIndex: 1 }}>
 
