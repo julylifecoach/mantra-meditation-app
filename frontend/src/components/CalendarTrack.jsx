@@ -6,11 +6,32 @@ export default function CalendarTrack({ beginnerMode }) {
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
     useEffect(() => {
-        // Load personal history
-        const local = localStorage.getItem('aura_reflections');
-        if (local) {
-            setHistory(JSON.parse(local));
-        }
+        // Load personal history from backend (synced across devices)
+        const fetchMyReflections = async () => {
+            try {
+                const token = localStorage.getItem('aura_token');
+                if (token) {
+                    const res = await fetch('/api/reflections/me', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        setHistory(data);
+                        // Update localStorage with latest backend data
+                        localStorage.setItem('aura_reflections', JSON.stringify(data));
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.log('Backend fetch failed, using local data');
+            }
+            // Fallback to localStorage
+            const local = localStorage.getItem('aura_reflections');
+            if (local) {
+                setHistory(JSON.parse(local));
+            }
+        };
+        fetchMyReflections();
 
         // Load public board to simulate fetching others' reflections for that day
         const fetchPublic = async () => {
