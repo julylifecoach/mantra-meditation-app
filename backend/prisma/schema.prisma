@@ -8,16 +8,32 @@ datasource db {
 }
 
 model User {
-  id          String       @id @default(uuid())
-  googleId    String       @unique
-  email       String       @unique
-  displayName String
-  nickname    String?
-  role        String       @default("user")
-  canWrite    Boolean      @default(true)
-  reflections Reflection[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id           String        @id @default(uuid())
+  googleId     String?       @unique
+  email        String        @unique
+  displayName  String
+  nickname     String?
+  passwordHash String?
+  role         String        @default("user")
+  canWrite     Boolean       @default(true)
+  reflections  Reflection[]
+  subscription Subscription?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Subscription {
+  id               String    @id @default(uuid())
+  userId           String    @unique
+  user             User      @relation(fields: [userId], references: [id])
+  stripeCustomerId String    @unique
+  stripeSubId      String?   @unique
+  status           String    @default("none")
+  plan             String?
+  currentPeriodEnd DateTime?
+  trialEnd         DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 }
 
 model Reflection {
