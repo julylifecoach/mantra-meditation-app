@@ -4,6 +4,7 @@ export default function CalendarTrack({ beginnerMode }) {
     const [history, setHistory] = useState([]);
     const [publicBoard, setPublicBoard] = useState([]);
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+    const [viewDate, setViewDate] = useState(new Date()); // controls which month is displayed
 
     useEffect(() => {
         // Load personal history from backend (synced across devices)
@@ -17,7 +18,6 @@ export default function CalendarTrack({ beginnerMode }) {
                     if (res.ok) {
                         const data = await res.json();
                         setHistory(data);
-                        // Update localStorage with latest backend data
                         localStorage.setItem('aura_reflections', JSON.stringify(data));
                         return;
                     }
@@ -25,7 +25,6 @@ export default function CalendarTrack({ beginnerMode }) {
             } catch (e) {
                 console.log('Backend fetch failed, using local data');
             }
-            // Fallback to localStorage
             const local = localStorage.getItem('aura_reflections');
             if (local) {
                 setHistory(JSON.parse(local));
@@ -33,7 +32,7 @@ export default function CalendarTrack({ beginnerMode }) {
         };
         fetchMyReflections();
 
-        // Load public board to simulate fetching others' reflections for that day
+        // Load public board
         const fetchPublic = async () => {
             try {
                 const res = await fetch('/api/reflections/public');
@@ -52,29 +51,53 @@ export default function CalendarTrack({ beginnerMode }) {
         fetchPublic();
     }, []);
 
+    // Helper: get the date string (YYYY-MM-DD) from a reflection entry
+    const getEntryDate = (entry) => {
+        const raw = entry.date || entry.createdAt;
+        if (!raw) return null;
+        return raw.substring(0, 10);
+    };
+
     const generateCalendarDays = () => {
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = today.getMonth();
+        const year = viewDate.getFullYear();
+        const month = viewDate.getMonth();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
 
         let days = [];
         for (let i = 1; i <= daysInMonth; i++) {
             const dateStr = new Date(year, month, i).toISOString().split('T')[0];
-            const hasMeditated = history.some(entry => entry.date && entry.date.startsWith(dateStr));
+            const hasMeditated = history.some(entry => getEntryDate(entry) === dateStr);
             days.push({ day: i, dateStr, hasMeditated });
         }
         return days;
     };
 
+    const goToPrevMonth = () => {
+        setViewDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+    };
+
+    const goToNextMonth = () => {
+        setViewDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+    };
+
+    const goToToday = () => {
+        const today = new Date();
+        setViewDate(today);
+        setSelectedDate(today.toISOString().split('T')[0]);
+    };
+
     const days = generateCalendarDays();
 
     // Filters for selected date
-    const myReflection = history.find(entry => entry.date && entry.date.startsWith(selectedDate));
-    const othersReflections = publicBoard.filter(entry => entry.date && entry.date.startsWith(selectedDate)); // Use date as fallback for createdAt in mock
+    const myReflection = history.find(entry => getEntryDate(entry) === selectedDate);
+    const othersReflections = publicBoard.filter(entry => getEntryDate(entry) === selectedDate);
 
     // Parse the date nicely for display
     const formattedDate = new Date(selectedDate + "T12:00:00").toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+    // Check if viewing current month
+    const now = new Date();
+    const isCurrentMonth = viewDate.getFullYear() === now.getFullYear() && viewDate.getMonth() === now.getMonth();
 
     return (
         <div style={{ width: '100%', maxWidth: '900px', margin: '0 auto', display: 'flex', gap: '3rem', flexWrap: 'wrap' }}>
@@ -95,17 +118,50 @@ export default function CalendarTrack({ beginnerMode }) {
                 )}
 
                 <div className="glass-panel" style={{ padding: '1.5rem' }}>
-                    <h3 style={{ marginBottom: '1rem', textAlign: 'center', color: 'var(--text-primary)' }}>
-                        {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                    </h3>
+                    {/* Month navigation */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                        <button
+                            onClick={goToPrevMonth}
+                            style={{
+                                background: 'none', border: 'none', cursor: 'pointer',
+                                color: 'var(--text-secondary)', fontSize: '1.2rem', padding: '4px 8px',
+                                borderRadius: '8px', transition: 'var(--transition-fast)',
+                            }}
+                            onMouseEnter={(e) => e.target.style.background = 'rgba(139, 92, 246, 0.1)'}
+                            onMouseLeave={(e) => e.target.style.background = 'none'}
+                        >
+                            ◀
+                        </button>
+                        <h3
+                            style={{ textAlign: 'center', color: 'var(--text-primary)', cursor: !isCurrentMonth ? 'pointer' : 'default' }}
+                            onClick={!isCurrentMonth ? goToToday : undefined}
+                            title={!isCurrentMonth ? 'Click to go to today' : ''}
+                        >
+                            {viewDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                        </h3>
+                        <button
+                            onClick={goToNextMonth}
+                            disabled={isCurrentMonth}
+                            style={{
+                                background: 'none', border: 'none', cursor: isCurrentMonth ? 'default' : 'pointer',
+                                color: isCurrentMonth ? 'var(--text-tertiary)' : 'var(--text-secondary)',
+                                fontSize: '1.2rem', padding: '4px 8px', borderRadius: '8px',
+                                opacity: isCurrentMonth ? 0.3 : 1, transition: 'var(--transition-fast)',
+                            }}
+                            onMouseEnter={(e) => { if (!isCurrentMonth) e.target.style.background = 'rgba(139, 92, 246, 0.1)'; }}
+                            onMouseLeave={(e) => e.target.style.background = 'none'}
+                        >
+                            ▶
+                        </button>
+                    </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem', textAlign: 'center' }}>
-                        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => (
-                            <div key={d} style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem', fontWeight: 600 }}>{d}</div>
+                        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
+                            <div key={`hdr-${i}`} style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem', fontWeight: 600 }}>{d}</div>
                         ))}
 
-                        {/* Empty slots for start of month - Simplified for prototype */}
-                        {Array.from({ length: new Date(new Date().getFullYear(), new Date().getMonth(), 1).getDay() }).map((_, i) => (
+                        {/* Empty slots for start of month */}
+                        {Array.from({ length: new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay() }).map((_, i) => (
                             <div key={`empty-${i}`} />
                         ))}
 
@@ -150,6 +206,11 @@ export default function CalendarTrack({ beginnerMode }) {
                                     "{myReflection.mantra}"
                                 </p>
                             )}
+                            {myReflection.title && (
+                                <p style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '0.5rem', fontSize: '1.1rem' }}>
+                                    {myReflection.title}
+                                </p>
+                            )}
                             <p style={{ color: 'var(--text-primary)', lineHeight: 1.6 }}>{myReflection.content}</p>
                         </>
                     ) : (
@@ -165,7 +226,7 @@ export default function CalendarTrack({ beginnerMode }) {
                             othersReflections.map((entry, idx) => (
                                 <div key={idx} style={{ padding: '1rem', borderBottom: '1px solid var(--glass-border)' }}>
                                     <p style={{ color: 'var(--text-primary)', lineHeight: 1.5, marginBottom: '0.5rem', fontSize: '0.95rem' }}>"{entry.content}"</p>
-                                    <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>- {entry.user?.displayName || 'Anonymous'}</span>
+                                    <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>- {entry.user?.nickname || entry.user?.displayName || 'Anonymous'}</span>
                                 </div>
                             ))
                         ) : (
