@@ -284,6 +284,8 @@ function App() {
                 theme="filled_black"
                 shape="pill"
                 text="signin_with"
+                ux_mode="popup"
+                use_fedcm_for_prompt={true}
               />
             )}
           </div>
