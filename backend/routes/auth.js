@@ -2,11 +2,10 @@ const express = require('express');
 const { OAuth2Client } = require('google-auth-library');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../lib/prisma');
 const { authenticate } = require('../middleware/auth');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Helper to create JWT
@@ -69,13 +68,16 @@ router.post('/google', async (req, res) => {
 // ============ Email/Password Register ============
 router.post('/register', async (req, res) => {
     try {
-        const { email, password, displayName } = req.body;
+        const { email, password, displayName, agreedToTos, marketingOptIn } = req.body;
 
         if (!email || !password) {
             return res.status(400).json({ error: 'Email and password are required' });
         }
         if (password.length < 8) {
             return res.status(400).json({ error: 'Password must be at least 8 characters' });
+        }
+        if (!agreedToTos) {
+            return res.status(400).json({ error: 'You must agree to the Terms of Service' });
         }
 
         // Check if email already exists
@@ -91,6 +93,9 @@ router.post('/register', async (req, res) => {
                 email,
                 passwordHash,
                 displayName: displayName || email.split('@')[0],
+                agreedToTos: true,
+                tosAgreedAt: new Date(),
+                marketingOptIn: !!marketingOptIn,
             },
         });
 

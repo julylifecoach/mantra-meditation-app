@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const rateLimit = require('express-rate-limit');
 
 const authRoutes = require('./routes/auth');
 const reflectionRoutes = require('./routes/reflections');
@@ -10,6 +11,22 @@ const stripeRoutes = require('./routes/stripe');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Rate limiters
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 15, // 15 login/register attempts per window
+    message: { error: 'Too many attempts, please try again later' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100, // 100 API requests per window
+    standardHeaders: true,
+    legacyHeaders: false,
+});
 
 // CORS — allow Practice app and Tools app
 const allowedOrigins = [
@@ -39,11 +56,11 @@ app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json());
 
 // Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/reflections', reflectionRoutes);
-app.use('/api/user', userRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/stripe', stripeRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/reflections', apiLimiter, reflectionRoutes);
+app.use('/api/user', apiLimiter, userRoutes);
+app.use('/api/admin', apiLimiter, adminRoutes);
+app.use('/api/stripe', apiLimiter, stripeRoutes);
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'Practice Backend is running!' });
