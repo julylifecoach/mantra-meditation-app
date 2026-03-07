@@ -31,6 +31,7 @@ const apiLimiter = rateLimit({
 // CORS — allow Practice app and Tools app
 const allowedOrigins = [
     'https://practice.julylifecoach.com',
+    'https://staging.practice.julylifecoach.com',
     'https://tools.julylifecoach.com',
     'https://www.julylifecoach.com',
     'https://julylifecoach.com',
