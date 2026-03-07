@@ -12,6 +12,7 @@ import PublicBoard from './components/PublicBoard';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import AdminPanel from './pages/AdminPanel';
+import ConsentModal from './components/ConsentModal';
 
 function Navigation() {
   const location = useLocation();
@@ -158,6 +159,11 @@ function App() {
     }
   };
 
+  const handleConsentComplete = (updatedUser) => {
+    localStorage.setItem('aura_user', JSON.stringify(updatedUser));
+    setUserProfile(updatedUser);
+  };
+
   const handleLoginError = () => {
     console.error('Login Failed');
   };
@@ -284,8 +290,6 @@ function App() {
                 theme="filled_black"
                 shape="pill"
                 text="signin_with"
-                ux_mode="popup"
-                use_fedcm_for_prompt={true}
               />
             )}
           </div>
@@ -311,6 +315,11 @@ function App() {
         </main>
 
         {isAuthenticated && <Navigation />}
+
+        {/* ToS Consent Modal */}
+        {isAuthenticated && userProfile && !userProfile.agreedToTos && (
+          <ConsentModal onComplete={handleConsentComplete} />
+        )}
       </div>
     </Router>
   );
