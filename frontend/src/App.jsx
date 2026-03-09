@@ -69,11 +69,43 @@ function App() {
 
   useEffect(() => {
     const savedUser = localStorage.getItem('aura_user');
-    if (savedUser) {
+    const savedToken = localStorage.getItem('aura_token');
+
+    if (savedUser && savedToken) {
+      // Optimistically show the user while we validate
       const user = JSON.parse(savedUser);
       setUserProfile(user);
       setIsAuthenticated(true);
       setNickname(user.nickname || '');
+
+      // Validate token with backend — auto-clear if invalid/expired
+      fetch('/api/auth/me', {
+        headers: { 'Authorization': `Bearer ${savedToken}` },
+      }).then(res => {
+        if (!res.ok) {
+          // Token is invalid or expired — auto-logout
+          console.warn('Stored token is invalid, clearing session.');
+          localStorage.removeItem('aura_user');
+          localStorage.removeItem('aura_token');
+          localStorage.removeItem('aura_reflections');
+          localStorage.removeItem('aura_daily_mantra');
+          setIsAuthenticated(false);
+          setUserProfile(null);
+          setNickname('');
+        } else {
+          // Token is valid — refresh user data from backend
+          res.json().then(data => {
+            if (data.user) {
+              localStorage.setItem('aura_user', JSON.stringify(data.user));
+              setUserProfile(data.user);
+              setNickname(data.user.nickname || '');
+            }
+          });
+        }
+      }).catch(() => {
+        // Network error — keep the optimistic state, don't log out
+        console.warn('Could not validate token (network error), keeping session.');
+      });
     }
   }, []);
 
