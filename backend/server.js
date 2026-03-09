@@ -8,6 +8,7 @@ const reflectionRoutes = require('./routes/reflections');
 const userRoutes = require('./routes/user');
 const adminRoutes = require('./routes/admin');
 const stripeRoutes = require('./routes/stripe');
+const resilienceRoutes = require('./routes/resilience');
 
 const app = express();
 app.set('trust proxy', 1); // Trust first proxy (Nginx)
@@ -63,6 +64,7 @@ app.use('/api/reflections', apiLimiter, reflectionRoutes);
 app.use('/api/user', apiLimiter, userRoutes);
 app.use('/api/admin', apiLimiter, adminRoutes);
 app.use('/api/stripe', apiLimiter, stripeRoutes);
+app.use('/api/resilience', apiLimiter, resilienceRoutes);
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'Practice Backend is running!' });

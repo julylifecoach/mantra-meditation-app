@@ -21,6 +21,7 @@ model User {
   marketingOptIn Boolean       @default(false)
   reflections    Reflection[]
   subscription   Subscription?
+  resilienceScores ResilienceScore[]
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 }
@@ -55,4 +56,15 @@ model Mantra {
   id        String   @id @default(uuid())
   text      String
   category  String
+}
+
+model ResilienceScore {
+  id          String   @id @default(uuid())
+  totalScore  Int
+  maxScore    Int
+  verdict     String
+  categories  Json
+  createdAt   DateTime @default(now())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
 }
