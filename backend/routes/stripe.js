@@ -146,21 +146,74 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
         switch (event.type) {
             case 'checkout.session.completed': {
                 const session = event.data.object;
-                const subscription = await getStripe().subscriptions.retrieve(session.subscription);
-                const customerId = session.customer;
 
-                await prisma.subscription.update({
-                    where: { stripeCustomerId: customerId },
-                    data: {
-                        stripeSubId: subscription.id,
-                        status: subscription.status,
-                        plan: subscription.items.data[0].price.id === PRICE_YEARLY ? 'yearly' : 'monthly',
-                        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-                        trialEnd: subscription.trial_end
-                            ? new Date(subscription.trial_end * 1000)
-                            : null,
-                    },
-                });
+                // 1. Check if this is a purchase for the Services Coaching Packages
+                if (session.metadata?.type === 'coaching_client') {
+                    const email = session.customer_details?.email || session.customer_email;
+                    if (email) {
+                        try {
+                            // Automatically provision the user's Client Hub access
+                            await prisma.user.upsert({
+                                where: { email },
+                                update: { accessClientPortal: true },
+                                create: {
+                                    email,
+                                    displayName: email.split('@')[0],
+                                    accessClientPortal: true,
+                                    agreedToTos: true,
+                                    tosAgreedAt: new Date(),
+                                }
+                            });
+
+                            // Send Welcome Email
+                            const nodemailer = require('nodemailer');
+                            const transporter = nodemailer.createTransport({
+                                sendmail: true,
+                                newline: 'unix',
+                                path: '/usr/sbin/sendmail'
+                            });
+
+                            const mailOptions = {
+                                from: 'billy@julylifecoach.com',
+                                to: email,
+                                subject: 'Welcome to July Life Coaching!',
+                                html: `
+                                    <h2>Welcome to your coaching journey!</h2>
+                                    <p>Thank you for purchasing a coaching package.</p>
+                                    <p>I manage all our 1:1 session notes and your tailored practices inside the <strong>July Practice App</strong>.</p>
+                                    <p>Please log in or create a free account at <a href="https://practice.julylifecoach.com">practice.julylifecoach.com</a> using this email address (<strong>${email}</strong>) to access your Client Hub.</p>
+                                    <p>I will be in touch with you shortly!</p>
+                                    <br/>
+                                    <p>- Billy</p>
+                                `
+                            };
+                            await transporter.sendMail(mailOptions);
+                            console.log('Processed coaching_client checkout and sent welcome email to:', email);
+                        } catch (err) {
+                            console.error('Error auto-provisioning coaching client:', err);
+                        }
+                    }
+                    break;
+                }
+
+                // 2. Existing logic for Tools/Practice App subscriptions
+                if (session.subscription) {
+                    const subscription = await getStripe().subscriptions.retrieve(session.subscription);
+                    const customerId = session.customer;
+
+                    await prisma.subscription.update({
+                        where: { stripeCustomerId: customerId },
+                        data: {
+                            stripeSubId: subscription.id,
+                            status: subscription.status,
+                            plan: subscription.items.data[0].price.id === PRICE_YEARLY ? 'yearly' : 'monthly',
+                            currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+                            trialEnd: subscription.trial_end
+                                ? new Date(subscription.trial_end * 1000)
+                                : null,
+                        },
+                    });
+                }
                 break;
             }
 
