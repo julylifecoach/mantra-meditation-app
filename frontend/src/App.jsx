@@ -8,7 +8,6 @@ import './index.css';
 import MantraQuiz from './components/MantraQuiz';
 import MeditationGuide from './components/MeditationGuide';
 import CalendarTrack from './components/CalendarTrack';
-import PublicBoard from './components/PublicBoard';
 import UserHub from './components/UserHub';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
@@ -28,7 +27,6 @@ function Navigation() {
     { path: '/', label: 'Mantra', icon: <Compass size={20} /> },
     { path: '/meditate', label: 'Practice', icon: <Check size={20} /> },
     { path: '/track', label: 'Track', icon: <Calendar size={20} /> },
-    { path: '/community', label: 'Community', icon: <Users size={20} /> },
   ];
 
   return (
@@ -349,7 +347,6 @@ function App() {
               <Route path="/" element={<MantraQuiz beginnerMode={beginnerMode} />} />
               <Route path="/meditate" element={<MeditationGuide beginnerMode={beginnerMode} />} />
               <Route path="/track" element={<CalendarTrack beginnerMode={beginnerMode} />} />
-              <Route path="/community" element={<PublicBoard beginnerMode={beginnerMode} isAdmin={isAdmin} />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/content-creator" element={<ContentCreatorSales />} />
@@ -362,6 +359,21 @@ function App() {
             <div style={{ textAlign: 'center', marginTop: '10rem', animation: 'fadeIn 1s ease-out' }}>
               <h2 style={{ fontSize: '3rem', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>Welcome to Practice</h2>
               <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', fontSize: '1.1rem' }}>Please sign in to begin your mindful journey.</p>
+              <button 
+                onClick={() => setIsFeedbackOpen(true)}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '100px',
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid var(--glass-border)',
+                  color: 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--font-sans)',
+                  transition: 'var(--transition-fast)'
+                }}
+              >
+                Leave Feedback
+              </button>
             </div>
           )}
         </main>
