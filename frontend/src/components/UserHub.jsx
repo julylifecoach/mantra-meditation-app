@@ -96,38 +96,25 @@ export default function UserHub({ userProfile }) {
                 <section className="glass-panel" style={{ padding: '2rem', animation: 'fadeIn 0.8s ease-out' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                         <h3 style={{ fontSize: '1.4rem', color: 'var(--accent-secondary)' }}>1:1 Client Portal</h3>
-                        <span style={{ fontSize: '0.9rem', color: 'var(--text-tertiary)' }}>{sessions.length} sessions</span>
                     </div>
 
-                    {loadingSessions ? (
-                        <p style={{ color: 'var(--text-tertiary)', textAlign: 'center', padding: '2rem 0' }}>Loading session history...</p>
-                    ) : sessions.length === 0 ? (
-                        <p style={{ color: 'var(--text-tertiary)', fontStyle: 'italic' }}>No coaching sessions recorded yet.</p>
-                    ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            {sessions.map((sess) => (
-                                <div key={sess.id} style={{
-                                    padding: '1.2rem',
-                                    background: 'rgba(0,0,0,0.2)',
-                                    borderLeft: '4px solid var(--accent-secondary)',
-                                    borderRadius: '8px',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '0.5rem'
-                                }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                        <h4 style={{ fontSize: '1.1rem', fontWeight: 500, color: 'var(--text-primary)' }}>{sess.mainTopics}</h4>
-                                        <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', whiteSpace: 'nowrap', marginLeft: '1rem' }}>
-                                            {new Date(sess.sessionDate).toLocaleDateString()}
-                                        </span>
-                                    </div>
-                                    <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                                        Topics discussed: {sess.mainTopics}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-                    )}
+                    <div style={{ 
+                        padding: '2rem',
+                        background: 'rgba(0,0,0,0.2)',
+                        borderLeft: '4px solid var(--text-tertiary)',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem',
+                        textAlign: 'center'
+                    }}>
+                        <h4 style={{ fontSize: '1.2rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Coming Soon!</h4>
+                        <p style={{ fontSize: '0.95rem', color: 'var(--text-tertiary)', maxWidth: '400px' }}>
+                            The interactive 1:1 session hub is currently under construction. Check back soon for your personalized session notes and practices!
+                        </p>
+                    </div>
                 </section>
             )}
         </div>
