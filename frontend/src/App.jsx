@@ -8,7 +8,7 @@ import './index.css';
 import MantraQuiz from './components/MantraQuiz';
 import MeditationGuide from './components/MeditationGuide';
 import CalendarTrack from './components/CalendarTrack';
-import UserHub from './components/UserHub';
+
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import AdminPanel from './pages/AdminPanel';
@@ -343,7 +343,7 @@ function App() {
         <main className="main-content">
           {isAuthenticated ? (
             <Routes>
-              <Route path="/hub" element={<UserHub userProfile={userProfile} />} />
+
               <Route path="/" element={<MantraQuiz beginnerMode={beginnerMode} />} />
               <Route path="/meditate" element={<MeditationGuide beginnerMode={beginnerMode} />} />
               <Route path="/track" element={<CalendarTrack beginnerMode={beginnerMode} />} />
