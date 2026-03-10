@@ -18,6 +18,7 @@ import ContentCreatorWiki from './pages/ContentCreatorWiki';
 import SelfCoachingExam from './pages/SelfCoachingExam';
 import AdvancedPractice108 from './pages/AdvancedPractice108';
 import ConsentModal from './components/ConsentModal';
+import FeedbackModal from './components/FeedbackModal';
 
 function Navigation() {
   const location = useLocation();
@@ -71,6 +72,7 @@ function App() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [nickname, setNickname] = useState('');
   const [editingNickname, setEditingNickname] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const profileRef = useRef(null);
 
   useEffect(() => {
@@ -317,6 +319,13 @@ function App() {
                       }}>
                         Log Out
                       </button>
+                      <button onClick={() => { setIsFeedbackOpen(true); setShowProfileMenu(false); }} style={{
+                        color: 'var(--text-secondary)', fontSize: '0.85rem',
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        fontFamily: 'var(--font-sans)', padding: 0, textAlign: 'left',
+                      }}>
+                        Leave Feedback
+                      </button>
                     </div>
                   </div>
                 )}
@@ -363,6 +372,13 @@ function App() {
         {isAuthenticated && userProfile && !userProfile.agreedToTos && (
           <ConsentModal onComplete={handleConsentComplete} />
         )}
+
+        {/* Feedback Modal */}
+        <FeedbackModal 
+          isOpen={isFeedbackOpen} 
+          onClose={() => setIsFeedbackOpen(false)} 
+          appSource="Practice App" 
+        />
       </div>
     </Router>
   );
