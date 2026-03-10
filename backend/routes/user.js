@@ -47,4 +47,24 @@ router.put('/consent', authenticate, async (req, res) => {
     }
 });
 
+// GET /api/user/coaching-sessions
+router.get('/coaching-sessions', authenticate, async (req, res) => {
+    try {
+        const sessions = await prisma.coachingSession.findMany({
+            where: { userId: req.userId },
+            orderBy: { sessionDate: 'desc' },
+            select: {
+                id: true,
+                sessionDate: true,
+                mainTopics: true,
+                createdAt: true
+            }
+        });
+        res.json(sessions);
+    } catch (error) {
+        console.error('Get user coaching sessions error:', error);
+        res.status(500).json({ error: 'Failed to load coaching sessions' });
+    }
+});
+
 module.exports = router;

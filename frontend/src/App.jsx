@@ -9,15 +9,21 @@ import MantraQuiz from './components/MantraQuiz';
 import MeditationGuide from './components/MeditationGuide';
 import CalendarTrack from './components/CalendarTrack';
 import PublicBoard from './components/PublicBoard';
+import UserHub from './components/UserHub';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import AdminPanel from './pages/AdminPanel';
+import ContentCreatorSales from './pages/ContentCreatorSales';
+import ContentCreatorWiki from './pages/ContentCreatorWiki';
+import SelfCoachingExam from './pages/SelfCoachingExam';
+import AdvancedPractice108 from './pages/AdvancedPractice108';
 import ConsentModal from './components/ConsentModal';
 
 function Navigation() {
   const location = useLocation();
 
   const navItems = [
+    { path: '/hub', label: 'Hub', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg> },
     { path: '/', label: 'Mantra', icon: <Compass size={20} /> },
     { path: '/meditate', label: 'Practice', icon: <Check size={20} /> },
     { path: '/track', label: 'Track', icon: <Calendar size={20} /> },
@@ -330,12 +336,17 @@ function App() {
         <main className="main-content">
           {isAuthenticated ? (
             <Routes>
+              <Route path="/hub" element={<UserHub userProfile={userProfile} />} />
               <Route path="/" element={<MantraQuiz beginnerMode={beginnerMode} />} />
               <Route path="/meditate" element={<MeditationGuide beginnerMode={beginnerMode} />} />
               <Route path="/track" element={<CalendarTrack beginnerMode={beginnerMode} />} />
               <Route path="/community" element={<PublicBoard beginnerMode={beginnerMode} isAdmin={isAdmin} />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
+              <Route path="/content-creator" element={<ContentCreatorSales />} />
+              <Route path="/content-creator-wiki" element={<ContentCreatorWiki userProfile={userProfile} />} />
+              <Route path="/self-coaching-exam" element={<SelfCoachingExam userProfile={userProfile} />} />
+              <Route path="/108-challenge" element={<AdvancedPractice108 userProfile={userProfile} />} />
               {isAdmin && <Route path="/admin" element={<AdminPanel />} />}
             </Routes>
           ) : (
