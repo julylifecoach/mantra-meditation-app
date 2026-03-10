@@ -55,19 +55,14 @@ export default function UserHub({ userProfile }) {
                         📚 Education
                     </h3>
 
-                    {userProfile?.accessSelfCoaching || userProfile?.role === 'admin' ? (
-                        <div 
-                            onClick={() => navigate('/self-coaching-wiki')}
-                            style={{ padding: '1rem', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '12px', border: '1px solid rgba(16, 185, 129, 0.3)', marginBottom: '1rem', cursor: 'pointer' }}>
-                            <h4 style={{ fontSize: '1.05rem', marginBottom: '0.25rem', color: '#10b981' }}>Self-Coaching Program</h4>
-                            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Buddhist Happiness Wiki & 108-Day Challenge unlocked.</p>
+                    {/* Self-Coaching Program - Coming Soon Placeholder */}
+                    <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px dashed var(--glass-border)', marginBottom: '1rem', opacity: 0.6 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                            <h4 style={{ fontSize: '1.05rem' }}>Self-Coaching Program</h4>
+                            <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', background: 'var(--text-tertiary)', color: 'var(--bg-primary)', borderRadius: '4px', fontWeight: 600 }}>COMING SOON</span>
                         </div>
-                    ) : (
-                        <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px dashed var(--glass-border)', marginBottom: '1rem', opacity: 0.6 }}>
-                            <h4 style={{ fontSize: '1.05rem', marginBottom: '0.25rem' }}>Self-Coaching Program</h4>
-                            <p style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>Locked. Enroll to access.</p>
-                        </div>
-                    )}
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>The Buddhist Happiness Wiki & 108-Day Challenge are currently under development.</p>
+                    </div>
 
                     {userProfile?.accessContentCreator || userProfile?.role === 'admin' ? (
                         <div
