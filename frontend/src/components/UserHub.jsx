@@ -56,7 +56,9 @@ export default function UserHub({ userProfile }) {
                     </h3>
 
                     {userProfile?.accessSelfCoaching ? (
-                        <div style={{ padding: '1rem', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '12px', border: '1px solid rgba(16, 185, 129, 0.3)', marginBottom: '1rem' }}>
+                        <div 
+                            onClick={() => navigate('/self-coaching-wiki')}
+                            style={{ padding: '1rem', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '12px', border: '1px solid rgba(16, 185, 129, 0.3)', marginBottom: '1rem', cursor: 'pointer' }}>
                             <h4 style={{ fontSize: '1.05rem', marginBottom: '0.25rem', color: '#10b981' }}>Self-Coaching Program</h4>
                             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Buddhist Happiness Wiki & 108-Day Challenge unlocked.</p>
                         </div>
