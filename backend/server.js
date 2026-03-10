@@ -18,7 +18,7 @@ const PORT = process.env.PORT || 5000;
 // Rate limiters
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 15, // 15 login/register attempts per window
+    max: 50, // 50 login/register attempts per window
     message: { error: 'Too many attempts, please try again later' },
     standardHeaders: true,
     legacyHeaders: false,
@@ -26,7 +26,7 @@ const authLimiter = rateLimit({
 
 const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 100, // 100 API requests per window
+    max: 500, // 500 API requests per window
     standardHeaders: true,
     legacyHeaders: false,
 });
