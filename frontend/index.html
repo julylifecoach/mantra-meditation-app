@@ -46,11 +46,22 @@
         <a href="https://practice.julylifecoach.com/" style="text-decoration: none; color: #4a4a4a; margin-bottom: 1rem; font-size: 1.1rem;" onmouseover="this.style.color='#1c1c1c'" onmouseout="this.style.color='#4a4a4a'">Practice App</a>
         <a href="https://french.julylifecoach.com/" style="text-decoration: none; color: #4a4a4a; margin-bottom: 1rem; font-size: 1.1rem;" onmouseover="this.style.color='#1c1c1c'" onmouseout="this.style.color='#4a4a4a'">French App</a>
     </div>
-    <button onclick="document.getElementById('universal-nav-drawer').style.right = '0'" style="position: fixed; bottom: 2rem; right: 2rem; width: 60px; height: 60px; border-radius: 50%; background: #1c1c1c; color: white; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); cursor: pointer; z-index: 99998; display: flex; align-items: center; justify-content: center; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" aria-label="Open July Ecosystem Menu">
+    <button class="ecosystem-toggle-btn" onclick="document.getElementById('universal-nav-drawer').style.right = '0'" style="position: fixed; bottom: 2rem; right: 2rem; width: 60px; height: 60px; border-radius: 50%; background: #1c1c1c; color: white; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); cursor: pointer; z-index: 99998; display: flex; align-items: center; justify-content: center; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" aria-label="Open July Ecosystem Menu">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="2"></circle><path d="M12 2a10 10 0 0 1 10 10"></path></svg>
+
     </button>
 <div id="root"></div>
   <script type="module" src="/src/main.jsx"></script>
+  <style>
+    /* Adjust ecosystem button on mobile so it doesn't overlap with the bottom nav */
+    @media (max-width: 768px) {
+      .ecosystem-toggle-btn {
+        bottom: 5.5rem !important; /* Above the mobile nav */
+        width: 50px !important;
+        height: 50px !important;
+      }
+    }
+  </style>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
