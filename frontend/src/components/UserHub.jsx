@@ -55,7 +55,7 @@ export default function UserHub({ userProfile }) {
                         📚 Education
                     </h3>
 
-                    {userProfile?.accessSelfCoaching ? (
+                    {userProfile?.accessSelfCoaching || userProfile?.role === 'admin' ? (
                         <div 
                             onClick={() => navigate('/self-coaching-wiki')}
                             style={{ padding: '1rem', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '12px', border: '1px solid rgba(16, 185, 129, 0.3)', marginBottom: '1rem', cursor: 'pointer' }}>
@@ -69,7 +69,7 @@ export default function UserHub({ userProfile }) {
                         </div>
                     )}
 
-                    {userProfile?.accessContentCreator ? (
+                    {userProfile?.accessContentCreator || userProfile?.role === 'admin' ? (
                         <div
                             onClick={() => navigate('/content-creator-wiki')}
                             style={{ padding: '1rem', background: 'rgba(139, 92, 246, 0.1)', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.3)', cursor: 'pointer' }}
