@@ -86,32 +86,7 @@ export default function UserHub({ userProfile }) {
                 </section>
             </div>
 
-            {/* Client Portal Section for Coaching Clients */}
-            {userProfile?.accessClientPortal && (
-                <section className="glass-panel" style={{ padding: '2rem', animation: 'fadeIn 0.8s ease-out' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                        <h3 style={{ fontSize: '1.4rem', color: 'var(--accent-secondary)' }}>1:1 Client Portal</h3>
-                    </div>
 
-                    <div style={{ 
-                        padding: '2rem',
-                        background: 'rgba(0,0,0,0.2)',
-                        borderLeft: '4px solid var(--text-tertiary)',
-                        borderRadius: '8px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.5rem',
-                        textAlign: 'center'
-                    }}>
-                        <h4 style={{ fontSize: '1.2rem', fontWeight: 500, color: 'var(--text-secondary)' }}>Coming Soon!</h4>
-                        <p style={{ fontSize: '0.95rem', color: 'var(--text-tertiary)', maxWidth: '400px' }}>
-                            The interactive 1:1 session hub is currently under construction. Check back soon for your personalized session notes and practices!
-                        </p>
-                    </div>
-                </section>
-            )}
         </div>
     );
 }
