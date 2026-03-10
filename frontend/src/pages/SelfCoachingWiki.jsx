@@ -1,11 +1,48 @@
 import React, { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
-import { Lock, Menu, X, ExternalLink, Calendar, BookOpen } from 'lucide-react';
-import wikiData from '../data/selfCoachingWiki.json';
+import ReactMarkdown from 'react-markdown';
+import { Lock, Menu, X, BookOpen, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
+const WIKI_TOPICS = ["Practice", "Convergence", "Procrastination", "Karma", "Happiness", "Suffering", "Shame"];
 
 export default function SelfCoachingWiki({ userProfile }) {
-    const [activeCategory, setActiveCategory] = useState(wikiData.categories[0] || '');
+    const [activeTopic, setActiveTopic] = useState(WIKI_TOPICS[0]);
+    const [markdownContent, setMarkdownContent] = useState('');
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [loading, setLoading] = useState(true);
+
+    // Fetch markdown content when topic changes
+    useEffect(() => {
+        setLoading(true);
+        fetch(`/wiki_drafts/${activeTopic}.md`)
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to load wiki draft');
+                return res.text();
+            })
+            .then(text => setMarkdownContent(text))
+            .catch(err => {
+                console.error(err);
+                setMarkdownContent('Error loading content.');
+            })
+            .finally(() => setLoading(false));
+    }, [activeTopic]);
+
+    // Handle internal link clicks in the markdown
+    const handleMarkdownClick = (e) => {
+        const target = e.target.closest('a');
+        if (!target) return;
+        
+        const href = target.getAttribute('href');
+        if (href && href.endsWith('.md')) {
+            e.preventDefault();
+            const topic = href.replace('.md', '');
+            if (WIKI_TOPICS.includes(topic)) {
+                setActiveTopic(topic);
+                // Also scroll top
+                document.querySelector('.wiki-content')?.scrollTo(0, 0);
+            }
+        }
+    };
 
     // Redirect if they don't have access
     if (!userProfile?.accessSelfCoaching && userProfile?.role !== 'admin') {
@@ -17,10 +54,6 @@ export default function SelfCoachingWiki({ userProfile }) {
             </div>
         );
     }
-
-    const filteredArticles = wikiData.articles.filter(article => 
-        article.categories.includes(activeCategory)
-    );
 
     return (
         <div style={{ display: 'flex', minHeight: 'calc(100vh - 100px)', borderTop: '1px solid var(--glass-border)', position: 'relative' }}>
@@ -37,39 +70,42 @@ export default function SelfCoachingWiki({ userProfile }) {
 
             {/* Sidebar */}
             <aside style={{
-                width: '300px',
+                width: '280px',
                 borderRight: '1px solid var(--glass-border)',
                 background: 'rgba(0,0,0,0.2)',
                 padding: '2rem 1rem',
                 display: mobileMenuOpen ? 'block' : 'none',
             }} className="wiki-sidebar">
-                <div style={{ marginBottom: '2rem', paddingLeft: '1rem' }}>
-                    <h2 style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Curriculum</h2>
+                <div style={{ marginBottom: '2rem', paddingLeft: '0.5rem' }}>
+                    <h2 style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Core Concepts</h2>
                 </div>
 
-                <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {wikiData.categories.map(category => (
+                <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    {WIKI_TOPICS.map(topic => (
                         <button
-                            key={category}
-                            onClick={() => { setActiveCategory(category); setMobileMenuOpen(false); }}
+                            key={topic}
+                            onClick={() => { setActiveTopic(topic); setMobileMenuOpen(false); }}
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '1rem',
-                                padding: '12px 1rem',
+                                justifyContent: 'space-between',
+                                padding: '10px 12px',
                                 width: '100%',
                                 textAlign: 'left',
                                 border: 'none',
-                                background: activeCategory === category ? 'rgba(255,255,255,0.1)' : 'transparent',
-                                color: activeCategory === category ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                                background: activeTopic === topic ? 'var(--accent-primary)' : 'transparent',
+                                color: activeTopic === topic ? 'white' : 'var(--text-secondary)',
                                 borderRadius: '8px',
                                 cursor: 'pointer',
                                 fontSize: '1.05rem',
                                 transition: 'var(--transition-fast)'
                             }}
                         >
-                            <BookOpen size={18} />
-                            {category}
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <BookOpen size={18} opacity={activeTopic === topic ? 1 : 0.6} />
+                                {topic}
+                            </span>
+                            {activeTopic === topic && <ChevronRight size={16} />}
                         </button>
                     ))}
                 </nav>
@@ -77,53 +113,17 @@ export default function SelfCoachingWiki({ userProfile }) {
 
             {/* Content Area */}
             <main style={{ flex: 1, padding: '4rem 2rem', overflowY: 'auto' }} className="wiki-content">
-                <div style={{ maxWidth: '900px', margin: '0 auto', animation: 'fadeIn 0.5s ease-out' }}>
-                    <h1 style={{ fontSize: '2.5rem', marginBottom: '2rem', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        {activeCategory}
-                    </h1>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
-                        {filteredArticles.map(article => (
-                            <a 
-                                key={article.id}
-                                href={article.url} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="glass-panel"
-                                style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    padding: '1.5rem',
-                                    textDecoration: 'none',
-                                    color: 'inherit',
-                                    transition: 'transform 0.2s, background 0.2s',
-                                    cursor: 'pointer'
-                                }}
-                                onMouseOver={e => {
-                                    e.currentTarget.style.transform = 'translateY(-2px)';
-                                    e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
-                                }}
-                                onMouseOut={e => {
-                                    e.currentTarget.style.transform = 'translateY(0)';
-                                    e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
-                                }}
-                            >
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', marginBottom: '0.5rem' }}>
-                                    <h3 style={{ fontSize: '1.15rem', lineHeight: 1.4, color: 'var(--text-primary)' }}>
-                                        {article.title}
-                                    </h3>
-                                    <ExternalLink size={16} color="var(--text-tertiary)" style={{ flexShrink: 0, marginTop: '4px' }} />
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-tertiary)', fontSize: '0.8rem', marginBottom: '1rem' }}>
-                                    <Calendar size={14} />
-                                    <span>{article.date || 'Unknown Date'}</span>
-                                </div>
-                                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.6, flexGrow: 1 }}>
-                                    {article.snippet}
-                                </p>
-                            </a>
-                        ))}
-                    </div>
+                <div style={{ maxWidth: '800px', margin: '0 auto', animation: 'fadeIn 0.5s ease-out' }} onClick={handleMarkdownClick}>
+                    {loading ? (
+                        <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                            <div className="loading-spinner" style={{ margin: '0 auto 1rem auto' }}></div>
+                            <p>Loading writings...</p>
+                        </div>
+                    ) : (
+                        <div className="markdown-body">
+                            <ReactMarkdown>{markdownContent}</ReactMarkdown>
+                        </div>
+                    )}
                 </div>
             </main>
 
@@ -151,6 +151,62 @@ export default function SelfCoachingWiki({ userProfile }) {
                         z-index: 40;
                         backdrop-filter: blur(10px);
                     }
+                }
+                
+                /* Markdown Styling overrides */
+                .markdown-body {
+                    color: var(--text-primary);
+                    font-size: 1.1rem;
+                    line-height: 1.7;
+                }
+                .markdown-body h1 {
+                    font-family: var(--font-serif);
+                    font-size: 3rem;
+                    color: var(--accent-primary);
+                    margin-bottom: 0.5rem;
+                }
+                .markdown-body h1 + p {
+                    color: var(--text-tertiary);
+                    font-style: italic;
+                    margin-bottom: 3rem;
+                    border-bottom: 1px solid var(--glass-border);
+                    padding-bottom: 1rem;
+                }
+                .markdown-body p {
+                    margin-bottom: 2rem;
+                    color: rgba(255,255,255,0.85);
+                }
+                .markdown-body p:has(a) {
+                    margin-bottom: 1rem;
+                }
+                .markdown-body p:has(a):nth-of-type(even) {
+                    margin-bottom: 2.5rem;
+                }
+                .markdown-body blockquote, .markdown-body p:has(strong) {
+                    font-size: 1.15rem;
+                    border-left: 3px solid var(--accent-primary);
+                    padding-left: 1.5rem;
+                    margin-left: -1.65rem;
+                    color: var(--text-primary);
+                }
+                .markdown-body hr {
+                    border: 0;
+                    height: 1px;
+                    background: var(--glass-border);
+                    margin: 3rem 0;
+                }
+                .markdown-body a {
+                    color: var(--accent-primary);
+                    text-decoration: none;
+                }
+                .markdown-body a:hover {
+                    text-decoration: underline;
+                }
+                .markdown-body p > em {
+                    font-size: 0.9rem;
+                    color: var(--text-tertiary);
+                    display: block;
+                    margin-top: 0.5rem;
                 }
             `}</style>
         </div>

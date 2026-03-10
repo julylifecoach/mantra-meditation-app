@@ -37,6 +37,12 @@ router.post('/', async (req, res) => {
             await transporter.sendMail(mailOptions);
         } catch (mailError) {
             console.error('Nodemailer feedback error:', mailError.message);
+            // Fallback: Log feedback to a file since sendmail is unavailable
+            const fs = require('fs');
+            const path = require('path');
+            const logEntry = `\n[${new Date().toISOString()}] Feedback from ${appSource}\nReply-To: ${replyTo || 'None'}\nMessage:\n${message}\n------------------------\n`;
+            fs.appendFileSync(path.join(__dirname, '../../feedback.log'), logEntry);
+            console.log('Feedback saved to local log file as fallback.');
         }
 
         res.status(200).json({ success: true, message: 'Feedback sent successfully' });
