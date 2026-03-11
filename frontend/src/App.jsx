@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
-import { Check, Compass, Calendar, Users } from 'lucide-react';
+import { Check, Compass, Calendar, Users, BookOpen } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import './index.css';
 
@@ -27,6 +27,7 @@ function Navigation() {
     { path: '/', label: 'Mantra', icon: <Compass size={20} /> },
     { path: '/meditate', label: 'Practice', icon: <Check size={20} /> },
     { path: '/track', label: 'Track', icon: <Calendar size={20} /> },
+    { path: 'https://resources.julylifecoach.com/buddhist-guide/', label: 'Learn', icon: <BookOpen size={20} />, external: true },
   ];
 
   return (
@@ -41,21 +42,43 @@ function Navigation() {
       zIndex: 100
     }}>
       {navItems.map((item) => (
-        <Link
-          key={item.path}
-          to={item.path}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '0.25rem',
-            color: location.pathname === item.path ? 'var(--accent-primary)' : 'var(--text-secondary)',
-            transition: 'var(--transition-fast)'
-          }}
-        >
-          {item.icon}
-          <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>{item.label}</span>
-        </Link>
+        item.external ? (
+          <a
+            key={item.path}
+            href={item.path}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '0.25rem',
+              color: 'var(--text-secondary)',
+              transition: 'var(--transition-fast)',
+              textDecoration: 'none'
+            }}
+          >
+            {item.icon}
+            <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>{item.label}</span>
+          </a>
+        ) : (
+          <Link
+            key={item.path}
+            to={item.path}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '0.25rem',
+              color: location.pathname === item.path ? 'var(--accent-primary)' : 'var(--text-secondary)',
+              transition: 'var(--transition-fast)',
+              textDecoration: 'none'
+            }}
+          >
+            {item.icon}
+            <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>{item.label}</span>
+          </Link>
+        )
       ))}
     </nav>
   );
