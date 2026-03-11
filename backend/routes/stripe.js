@@ -168,9 +168,11 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
                             // Send Welcome Email
                             const nodemailer = require('nodemailer');
                             const transporter = nodemailer.createTransport({
-                                sendmail: true,
-                                newline: 'unix',
-                                path: '/usr/sbin/sendmail'
+                                service: 'gmail',
+                                auth: {
+                                    user: process.env.SMTP_USER,
+                                    pass: process.env.SMTP_PASS
+                                }
                             });
 
                             const mailOptions = {

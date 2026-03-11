@@ -12,9 +12,11 @@ router.post('/', async (req, res) => {
         }
 
         const transporter = nodemailer.createTransport({
-            sendmail: true,
-            newline: 'unix',
-            path: '/usr/sbin/sendmail'
+            service: 'gmail',
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS
+            }
         });
 
         const replyToText = replyTo ? `<p><strong>Reply-To:</strong> ${replyTo}</p>` : '<p><strong>Reply-To:</strong> Not provided</p>';
