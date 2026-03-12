@@ -27,29 +27,35 @@ router.post('/scores', authenticate, async (req, res) => {
     }
 });
 
+// GET /api/resilience/scores
+// Get user's resilience quiz scores
+router.get('/scores', authenticate, async (req, res) => {
+    try {
+        const scores = await prisma.resilienceScore.findMany({
+            where: { userId: req.userId },
+            orderBy: { createdAt: 'desc' }
+        });
+        res.status(200).json(scores);
+    } catch (error) {
+        console.error('Error fetching scores:', error);
+        res.status(500).json({ error: 'Failed to fetch scores' });
+    }
+});
+
 // POST /api/resilience/lead
 // Handle lead capture form
 router.post('/lead', async (req, res) => {
     try {
         const { email, questions, coaching, scoreData } = req.body;
 
-        // In a real production environment, you'd use SMTP creds from env
-        // For example:
-        // const transporter = nodemailer.createTransport({
-        //     host: process.env.SMTP_HOST,
-        //     port: process.env.SMTP_PORT,
-        //     auth: {
-        //         user: process.env.SMTP_USER,
-        //         pass: process.env.SMTP_PASS
-        //     }
-        // });
-
-        // As a fallback or if not configured, we'll setup a sendmail transport or just log it
-        // and optionally send via a generic SMTP relay.
         const transporter = nodemailer.createTransport({
-            sendmail: true,
-            newline: 'unix',
-            path: '/usr/sbin/sendmail'
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true,
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS
+            }
         });
 
         let scoreHtml = 'No score data provided.';
