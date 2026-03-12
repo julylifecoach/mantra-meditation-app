@@ -39,6 +39,7 @@ const allowedOrigins = [
     'https://www.julylifecoach.com',
     'https://julylifecoach.com',
     'https://french.julylifecoach.com',
+    'https://resources.julylifecoach.com',
     'http://localhost:5173',
     'http://localhost:5174',
 ];
