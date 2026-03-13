@@ -10,6 +10,7 @@ const adminRoutes = require('./routes/admin');
 const stripeRoutes = require('./routes/stripe');
 const resilienceRoutes = require('./routes/resilience');
 const feedbackRoutes = require('./routes/feedback');
+const redditRoutes = require('./routes/reddit');
 
 const app = express();
 app.set('trust proxy', 1); // Trust first proxy (Nginx)
@@ -69,6 +70,7 @@ app.use('/api/admin', apiLimiter, adminRoutes);
 app.use('/api/stripe', apiLimiter, stripeRoutes);
 app.use('/api/resilience', apiLimiter, resilienceRoutes);
 app.use('/api/feedback', apiLimiter, feedbackRoutes);
+app.use('/api/reddit', apiLimiter, redditRoutes);
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'Practice Backend is running!' });
