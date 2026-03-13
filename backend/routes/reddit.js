@@ -18,16 +18,16 @@ router.get('/', async (req, res) => {
 
         let allResults = [];
 
-        // Helper to fetch JSON from Reddit via HTTPs request
+        // Helper to fetch JSON from PullPush via HTTPs request
         const fetchReddit = (sub) => {
             return new Promise((resolve, reject) => {
                 const options = {
-                    hostname: 'www.reddit.com',
+                    hostname: 'api.pullpush.io',
                     port: 443,
-                    path: `/r/${sub}/new.json?limit=100`,
+                    path: `/reddit/search/submission/?subreddit=${sub}&sort=desc&size=50`,
                     method: 'GET',
                     headers: {
-                        'User-Agent': 'JulyCoachTools/1.0 (by /u/julylifecoach)'
+                        'User-Agent': 'JulyCoachTools/1.0'
                     }
                 };
 
@@ -59,12 +59,11 @@ router.get('/', async (req, res) => {
         for (const promiseResult of responses) {
             if (promiseResult.status === 'fulfilled' && promiseResult.value.data && promiseResult.value.data.data) {
                 const sub = promiseResult.value.sub;
-                const children = promiseResult.value.data.data.children || [];
+                const posts = promiseResult.value.data.data || [];
                 
-                for (const child of children) {
-                    const post = child.data;
+                for (const post of posts) {
                     const createdUtc = post.created_utc;
-                    const numComments = post.num_comments;
+                    const numComments = post.num_comments || 0;
                     
                     if (createdUtc >= timeThreshold && numComments <= maxComments) {
                         allResults.push({
