@@ -1,11 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const https = require('https');
+const { XMLParser } = require('fast-xml-parser');
+
+const parser = new XMLParser({
+    ignoreAttributes: false,
+    attributeNamePrefix: "@_"
+});
 
 router.get('/', async (req, res) => {
     try {
         const subredditsParam = req.query.subreddits || 'Advice,LifeAdvice';
-        const maxComments = parseInt(req.query.maxComments) || 50;
+        // maxComments is not available in RSS, so we ignore it here
         const pastHours = parseInt(req.query.hours) || 12;
         
         const subreddits = subredditsParam.split(',').map(s => s.trim()).filter(Boolean);
@@ -18,16 +24,17 @@ router.get('/', async (req, res) => {
 
         let allResults = [];
 
-        // Helper to fetch JSON from PullPush via HTTPs request
-        const fetchReddit = (sub) => {
+        // Helper to fetch RSS from Reddit via HTTPs request
+        const fetchRedditRss = (sub) => {
             return new Promise((resolve, reject) => {
                 const options = {
-                    hostname: 'api.pullpush.io',
+                    hostname: 'www.reddit.com',
                     port: 443,
-                    path: `/reddit/search/submission/?subreddit=${sub}&sort=desc&size=50`,
+                    path: `/r/${sub}/new.rss`,
                     method: 'GET',
                     headers: {
-                        'User-Agent': 'JulyCoachTools/1.0'
+                        'User-Agent': 'JulyCoachTools/1.0',
+                        'Accept': 'application/rss+xml, application/rdf+xml, application/atom+xml, application/xml, text/xml'
                     }
                 };
 
@@ -37,9 +44,10 @@ router.get('/', async (req, res) => {
                     response.on('end', () => {
                         if (response.statusCode === 200) {
                             try {
-                                resolve({ sub, data: JSON.parse(data) });
+                                const parsed = parser.parse(data);
+                                resolve({ sub, data: parsed });
                             } catch (e) {
-                                reject(new Error(`Failed to parse JSON for ${sub}: ${e.message}`));
+                                reject(new Error(`Failed to parse XML for ${sub}: ${e.message}`));
                             }
                         } else {
                             resolve({ sub, error: `Status ${response.statusCode}`, data: null });
@@ -53,32 +61,49 @@ router.get('/', async (req, res) => {
         };
 
         // Fetch all subreddits in parallel
-        const fetchPromises = subreddits.map(sub => fetchReddit(sub));
+        const fetchPromises = subreddits.map(sub => fetchRedditRss(sub));
         const responses = await Promise.allSettled(fetchPromises);
 
         for (const promiseResult of responses) {
-            if (promiseResult.status === 'fulfilled' && promiseResult.value.data && promiseResult.value.data.data) {
+            if (promiseResult.status === 'fulfilled' && promiseResult.value.data && promiseResult.value.data.feed) {
                 const sub = promiseResult.value.sub;
-                const posts = promiseResult.value.data.data || [];
+                const entries = promiseResult.value.data.feed.entry || [];
+                
+                // Ensure entries is an array even if there's only one
+                const posts = Array.isArray(entries) ? entries : [entries];
                 
                 for (const post of posts) {
-                    const createdUtc = post.created_utc;
-                    const numComments = post.num_comments || 0;
+                    const updatedStr = post.updated || '';
+                    const createdUtc = Math.floor(new Date(updatedStr).getTime() / 1000);
                     
-                    if (createdUtc >= timeThreshold && numComments <= maxComments) {
+                    if (createdUtc >= timeThreshold) {
+                        // Extract link
+                        let postUrl = '';
+                        if (post.link && post.link['@_href']) {
+                            postUrl = post.link['@_href'];
+                        } else {
+                            postUrl = `https://www.reddit.com/r/${sub}/comments/` + (post.id || '').split('_').pop();
+                        }
+
+                        // Extract author
+                        let authorName = 'Unknown';
+                        if (post.author && post.author.name) {
+                            authorName = post.author.name.replace('/u/', '');
+                        }
+
                         allResults.push({
                             title: post.title,
-                            url: 'https://www.reddit.com' + post.permalink,
+                            url: postUrl,
                             subreddit: sub,
-                            num_comments: numComments,
+                            num_comments: '?', // RSS doesn't provide comment count natively
                             created_utc: createdUtc,
-                            author: post.author,
-                            selftext: post.selftext ? post.selftext.substring(0, 300) + (post.selftext.length > 300 ? '...' : '') : ''
+                            author: authorName,
+                            selftext: 'Click link to view full post content...'
                         });
                     }
                 }
             } else if (promiseResult.status === 'rejected') {
-                console.error('Reddit fetch failed:', promiseResult.reason);
+                console.error('Reddit RSS fetch failed:', promiseResult.reason);
             }
         }
 
