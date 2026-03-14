@@ -37,6 +37,7 @@ router.get('/users', requireAdmin, async (req, res) => {
                 accessSelfCoaching: true,
                 accessContentCreator: true,
                 accessClientPortal: true,
+                accessBizCoach: true,
                 createdAt: true,
                 _count: { select: { reflections: true, coachingSessions: true } }
             },
@@ -67,20 +68,22 @@ router.put('/users/:id/canWrite', requireAdmin, async (req, res) => {
 // PUT /api/admin/users/:id/permissions - Update ecosystem permissions
 router.put('/users/:id/permissions', requireAdmin, async (req, res) => {
     try {
-        const { accessSelfCoaching, accessContentCreator, accessClientPortal } = req.body;
+        const { accessSelfCoaching, accessContentCreator, accessClientPortal, accessBizCoach } = req.body;
         const user = await prisma.user.update({
             where: { id: req.params.id },
             data: {
                 accessSelfCoaching: Boolean(accessSelfCoaching),
                 accessContentCreator: Boolean(accessContentCreator),
-                accessClientPortal: Boolean(accessClientPortal)
+                accessClientPortal: Boolean(accessClientPortal),
+                accessBizCoach: Boolean(accessBizCoach)
             },
         });
         res.json({
             id: user.id,
             accessSelfCoaching: user.accessSelfCoaching,
             accessContentCreator: user.accessContentCreator,
-            accessClientPortal: user.accessClientPortal
+            accessClientPortal: user.accessClientPortal,
+            accessBizCoach: user.accessBizCoach
         });
     } catch (error) {
         console.error('Admin update permissions error:', error);

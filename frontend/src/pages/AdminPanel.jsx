@@ -121,6 +121,7 @@ export default function AdminPanel() {
                 accessSelfCoaching: user.accessSelfCoaching,
                 accessContentCreator: user.accessContentCreator,
                 accessClientPortal: user.accessClientPortal,
+                accessBizCoach: user.accessBizCoach,
                 [permissionField]: !user[permissionField]
             };
 
@@ -229,6 +230,9 @@ export default function AdminPanel() {
                                         <button onClick={() => togglePermission(user, 'accessClientPortal')} style={{
                                             ...badgeStyle(user.accessClientPortal)
                                         }}>Client</button>
+                                        <button onClick={() => togglePermission(user, 'accessBizCoach')} style={{
+                                            ...badgeStyle(user.accessBizCoach)
+                                        }}>BizCoach</button>
                                     </div>
                                 </td>
                                 <td style={{ padding: '0.8rem 1rem', color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>

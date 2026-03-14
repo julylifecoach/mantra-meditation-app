@@ -24,6 +24,7 @@ model User {
   accessSelfCoaching   Boolean           @default(false)
   accessContentCreator Boolean           @default(false)
   accessClientPortal   Boolean           @default(false)
+  accessBizCoach       Boolean           @default(false)
 
   reflections          Reflection[]
   subscription         Subscription?

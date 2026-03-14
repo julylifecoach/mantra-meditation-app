@@ -83,6 +83,24 @@ export default function UserHub({ userProfile }) {
                             <p style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>Locked. Click to view program info.</p>
                         </div>
                     )}
+
+                    {/* BizCoach Program */}
+                    {userProfile?.accessBizCoach || userProfile?.role === 'admin' ? (
+                        <div
+                            onClick={() => navigate('/bizcoach')}
+                            style={{ padding: '1rem', background: 'rgba(245, 158, 11, 0.1)', borderRadius: '12px', border: '1px solid rgba(245, 158, 11, 0.3)', cursor: 'pointer', marginTop: '1rem' }}
+                        >
+                            <h4 style={{ fontSize: '1.05rem', marginBottom: '0.25rem', color: '#f59e0b' }}>BizCoach</h4>
+                            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Video library and program materials.</p>
+                        </div>
+                    ) : (
+                        <div
+                            style={{ padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px dashed var(--glass-border)', opacity: 0.6, marginTop: '1rem' }}
+                        >
+                            <h4 style={{ fontSize: '1.05rem', marginBottom: '0.25rem' }}>BizCoach</h4>
+                            <p style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>Locked. Contact Billy to enroll.</p>
+                        </div>
+                    )}
                 </section>
             </div>
 

@@ -17,6 +17,7 @@ import ContentCreatorWiki from './pages/ContentCreatorWiki';
 import SelfCoachingExam from './pages/SelfCoachingExam';
 import AdvancedPractice108 from './pages/AdvancedPractice108';
 import SelfCoachingWiki from './pages/SelfCoachingWiki';
+import BizCoachHome from './pages/BizCoachHome';
 import ConsentModal from './components/ConsentModal';
 import FeedbackModal from './components/FeedbackModal';
 
@@ -376,6 +377,7 @@ function App() {
               <Route path="/content-creator-wiki" element={<ContentCreatorWiki userProfile={userProfile} />} />
               <Route path="/self-coaching-exam" element={<SelfCoachingExam userProfile={userProfile} />} />
               <Route path="/self-coaching-wiki" element={<SelfCoachingWiki userProfile={userProfile} />} />
+              <Route path="/bizcoach" element={<BizCoachHome userProfile={userProfile} />} />
               <Route path="/108-challenge" element={<AdvancedPractice108 userProfile={userProfile} />} />
               {isAdmin && <Route path="/admin" element={<AdminPanel />} />}
             </Routes>

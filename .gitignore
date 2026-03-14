@@ -1,1 +1,4 @@
 .env
+node_modules/
+backend/client_secret.json
+backend/token.json
