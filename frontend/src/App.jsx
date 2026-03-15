@@ -8,6 +8,7 @@ import './index.css';
 import MantraQuiz from './components/MantraQuiz';
 import MeditationGuide from './components/MeditationGuide';
 import CalendarTrack from './components/CalendarTrack';
+import UserHub from './components/UserHub';
 
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
@@ -326,6 +327,14 @@ function App() {
                     </div>
 
                     <div style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      {(userProfile?.accessClientPortal || userProfile?.accessBizCoach || userProfile?.accessContentCreator || userProfile?.accessSelfCoaching || isAdmin) && (
+                        <Link to="/hub" onClick={() => setShowProfileMenu(false)} style={{
+                          color: 'var(--accent-primary)', fontSize: '0.85rem',
+                          textDecoration: 'none', fontFamily: 'var(--font-sans)',
+                        }}>
+                          🏠 My Hub
+                        </Link>
+                      )}
                       {isAdmin && (
                         <Link to="/admin" onClick={() => setShowProfileMenu(false)} style={{
                           color: 'var(--accent-primary)', fontSize: '0.85rem',
@@ -378,6 +387,7 @@ function App() {
               <Route path="/self-coaching-exam" element={<SelfCoachingExam userProfile={userProfile} />} />
               <Route path="/self-coaching-wiki" element={<SelfCoachingWiki userProfile={userProfile} />} />
               <Route path="/bizcoach" element={<BizCoachHome userProfile={userProfile} />} />
+              <Route path="/hub" element={<UserHub userProfile={userProfile} />} />
               <Route path="/108-challenge" element={<AdvancedPractice108 userProfile={userProfile} />} />
               {isAdmin && <Route path="/admin" element={<AdminPanel />} />}
             </Routes>
