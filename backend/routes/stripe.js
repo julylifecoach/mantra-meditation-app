@@ -150,16 +150,23 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
                 // 1. Check if this is a purchase for the Services Coaching Packages
                 if (session.metadata?.type === 'coaching_client') {
                     const email = session.customer_details?.email || session.customer_email;
+                    const program = session.metadata?.program; // e.g. 'bizcoach'
                     if (email) {
                         try {
-                            // Automatically provision the user's Client Hub access
+                            // Build permissions based on program type
+                            const permissions = { accessClientPortal: true };
+                            if (program === 'bizcoach') {
+                                permissions.accessBizCoach = true;
+                            }
+
+                            // Automatically provision the user's access
                             await prisma.user.upsert({
                                 where: { email },
-                                update: { accessClientPortal: true },
+                                update: permissions,
                                 create: {
                                     email,
                                     displayName: email.split('@')[0],
-                                    accessClientPortal: true,
+                                    ...permissions,
                                     agreedToTos: true,
                                     tosAgreedAt: new Date(),
                                 }
@@ -175,22 +182,27 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
                                 }
                             });
 
+                            const portalLink = program === 'bizcoach'
+                                ? 'https://practice.julylifecoach.com/bizcoach'
+                                : 'https://practice.julylifecoach.com';
+                            const programLabel = program === 'bizcoach' ? 'BizCoach' : 'coaching';
+
                             const mailOptions = {
                                 from: 'billy@julylifecoach.com',
                                 to: email,
-                                subject: 'Welcome to July Life Coaching!',
+                                subject: `Welcome to July Life Coaching${program === 'bizcoach' ? ' — BizCoach Program' : ''}`,
                                 html: `
-                                    <h2>Welcome to your coaching journey!</h2>
-                                    <p>Thank you for purchasing a coaching package.</p>
-                                    <p>I manage all our 1:1 session notes and your tailored practices inside the <strong>July Practice App</strong>.</p>
-                                    <p>Please log in or create a free account at <a href="https://practice.julylifecoach.com">practice.julylifecoach.com</a> using this email address (<strong>${email}</strong>) to access your Client Hub.</p>
+                                    <h2>Welcome to your ${programLabel} journey!</h2>
+                                    <p>Thank you for your purchase.</p>
+                                    <p>I manage all our session notes, video recordings, and your tailored practices inside the <strong>July Practice App</strong>.</p>
+                                    <p>Please log in or create a free account at <a href="${portalLink}">${portalLink}</a> using this email address (<strong>${email}</strong>) to access your ${programLabel === 'BizCoach' ? 'BizCoach video library and' : ''} Client Hub.</p>
                                     <p>I will be in touch with you shortly!</p>
                                     <br/>
                                     <p>- Billy</p>
                                 `
                             };
                             await transporter.sendMail(mailOptions);
-                            console.log('Processed coaching_client checkout and sent welcome email to:', email);
+                            console.log(`Processed ${program || 'coaching_client'} checkout and sent welcome email to:`, email);
                         } catch (err) {
                             console.error('Error auto-provisioning coaching client:', err);
                         }
