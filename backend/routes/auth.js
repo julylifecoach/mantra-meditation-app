@@ -83,6 +83,22 @@ router.post('/register', async (req, res) => {
         // Check if email already exists
         const existing = await prisma.user.findUnique({ where: { email } });
         if (existing) {
+            // If user was pre-created by webhook (no password set), let them complete registration
+            if (!existing.passwordHash) {
+                const passwordHash = await bcrypt.hash(password, 12);
+                const user = await prisma.user.update({
+                    where: { email },
+                    data: {
+                        passwordHash,
+                        displayName: displayName || existing.displayName,
+                        agreedToTos: true,
+                        tosAgreedAt: new Date(),
+                        marketingOptIn: !!marketingOptIn,
+                    },
+                });
+                const token = createToken(user);
+                return res.json({ token, user: sanitizeUser(user) });
+            }
             return res.status(409).json({ error: 'An account with this email already exists' });
         }
 

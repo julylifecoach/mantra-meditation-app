@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function AdminPanel() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const navigate = useNavigate();
 
     // Session Modal State
     const [selectedUser, setSelectedUser] = useState(null);
@@ -159,6 +161,12 @@ export default function AdminPanel() {
                 <p style={{ color: 'var(--text-secondary)' }}>
                     {users.length} registered user{users.length !== 1 ? 's' : ''}
                 </p>
+                <button onClick={() => navigate('/admin/programs')} style={{
+                    marginTop: '1rem', padding: '0.5rem 1.25rem', borderRadius: '10px',
+                    background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b',
+                    border: '1px solid rgba(245, 158, 11, 0.3)', cursor: 'pointer',
+                    fontFamily: 'var(--font-sans)', fontSize: '0.9rem', fontWeight: 500,
+                }}>📋 Manage Programs</button>
             </header>
 
             <div className="glass-panel" style={{ padding: '1.5rem', overflowX: 'auto' }}>

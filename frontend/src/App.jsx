@@ -19,16 +19,20 @@ import SelfCoachingExam from './pages/SelfCoachingExam';
 import AdvancedPractice108 from './pages/AdvancedPractice108';
 import SelfCoachingWiki from './pages/SelfCoachingWiki';
 import BizCoachHome from './pages/BizCoachHome';
+import ProgramPage from './pages/ProgramPage';
+import ProgramAdmin from './pages/ProgramAdmin';
 import ConsentModal from './components/ConsentModal';
 import FeedbackModal from './components/FeedbackModal';
 
-function Navigation() {
+function Navigation({ userProfile }) {
   const location = useLocation();
+  const hasClientAccess = userProfile?.accessClientPortal || userProfile?.accessBizCoach || userProfile?.accessContentCreator || userProfile?.accessSelfCoaching || userProfile?.role === 'admin';
 
   const navItems = [
     { path: '/', label: 'Mantra', icon: <Compass size={20} /> },
     { path: '/meditate', label: 'Practice', icon: <Check size={20} /> },
     { path: '/track', label: 'Track', icon: <Calendar size={20} /> },
+    ...(hasClientAccess ? [{ path: '/hub', label: 'Hub', icon: <Users size={20} /> }] : []),
     { path: 'https://resources.julylifecoach.com/buddhist-guide/', label: 'Learn', icon: <BookOpen size={20} />, external: true },
   ];
 
@@ -96,6 +100,9 @@ function App() {
   const [nickname, setNickname] = useState('');
   const [editingNickname, setEditingNickname] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [authMode, setAuthMode] = useState('login'); // 'login' or 'register'
+  const [authError, setAuthError] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
   const profileRef = useRef(null);
 
   useEffect(() => {
@@ -361,15 +368,7 @@ function App() {
                   </div>
                 )}
               </div>
-            ) : (
-              <GoogleLogin
-                onSuccess={handleLoginSuccess}
-                onError={handleLoginError}
-                theme="filled_black"
-                shape="pill"
-                text="signin_with"
-              />
-            )}
+            ) : null}
           </div>
         </header>
 
@@ -387,18 +386,134 @@ function App() {
               <Route path="/self-coaching-exam" element={<SelfCoachingExam userProfile={userProfile} />} />
               <Route path="/self-coaching-wiki" element={<SelfCoachingWiki userProfile={userProfile} />} />
               <Route path="/bizcoach" element={<BizCoachHome userProfile={userProfile} />} />
+              <Route path="/bizcoach/program/:slug" element={<ProgramPage userProfile={userProfile} />} />
               <Route path="/hub" element={<UserHub userProfile={userProfile} />} />
               <Route path="/108-challenge" element={<AdvancedPractice108 userProfile={userProfile} />} />
               {isAdmin && <Route path="/admin" element={<AdminPanel />} />}
+              {isAdmin && <Route path="/admin/programs" element={<ProgramAdmin />} />}
             </Routes>
           ) : (
-            <div style={{ textAlign: 'center', marginTop: '10rem', animation: 'fadeIn 1s ease-out' }}>
-              <h2 style={{ fontSize: '3rem', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>Welcome to Practice</h2>
-              <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', fontSize: '1.1rem' }}>Please sign in to begin your mindful journey.</p>
-              <button 
+            <div style={{ textAlign: 'center', marginTop: '6rem', animation: 'fadeIn 1s ease-out' }}>
+              <h2 style={{ fontSize: '3rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>Welcome to Practice</h2>
+              <p style={{ color: 'var(--text-secondary)', marginBottom: '2.5rem', fontSize: '1.1rem' }}>Sign in to begin your mindful journey.</p>
+
+              {/* Auth Card */}
+              <div className="glass-panel" style={{ maxWidth: '400px', margin: '0 auto', padding: '2rem', textAlign: 'left' }}>
+
+                {/* Toggle Tabs */}
+                <div style={{ display: 'flex', marginBottom: '1.5rem', borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--glass-border)' }}>
+                  <button onClick={() => { setAuthMode('login'); setAuthError(''); }} style={{
+                    flex: 1, padding: '0.6rem', fontFamily: 'var(--font-sans)', fontSize: '0.85rem', fontWeight: 600,
+                    background: authMode === 'login' ? 'var(--accent-primary)' : 'transparent',
+                    color: authMode === 'login' ? '#fff' : 'var(--text-secondary)',
+                    border: 'none', cursor: 'pointer', transition: 'var(--transition-fast)',
+                  }}>Sign In</button>
+                  <button onClick={() => { setAuthMode('register'); setAuthError(''); }} style={{
+                    flex: 1, padding: '0.6rem', fontFamily: 'var(--font-sans)', fontSize: '0.85rem', fontWeight: 600,
+                    background: authMode === 'register' ? 'var(--accent-primary)' : 'transparent',
+                    color: authMode === 'register' ? '#fff' : 'var(--text-secondary)',
+                    border: 'none', cursor: 'pointer', transition: 'var(--transition-fast)',
+                  }}>Create Account</button>
+                </div>
+
+                {/* Email/Password Form */}
+                <form onSubmit={async (e) => {
+                  e.preventDefault();
+                  setAuthError('');
+                  setAuthLoading(true);
+                  const form = e.target;
+                  const email = form.email.value.trim();
+                  const password = form.password.value;
+
+                  try {
+                    const endpoint = authMode === 'login' ? '/api/auth/login' : '/api/auth/register';
+                    const body = authMode === 'login'
+                      ? { email, password }
+                      : { email, password, displayName: form.displayName?.value?.trim() || email.split('@')[0], agreedToTos: true };
+
+                    const res = await fetch(endpoint, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(body),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) {
+                      setAuthError(data.error || 'Authentication failed');
+                    } else {
+                      localStorage.setItem('aura_token', data.token);
+                      localStorage.setItem('aura_user', JSON.stringify(data.user));
+                      setIsAuthenticated(true);
+                      setUserProfile(data.user);
+                      setNickname(data.user.nickname || '');
+                    }
+                  } catch (err) {
+                    setAuthError('Network error. Please try again.');
+                  } finally {
+                    setAuthLoading(false);
+                  }
+                }}>
+
+                  {authMode === 'register' && (
+                    <input name="displayName" type="text" placeholder="Display name (optional)" style={{
+                      width: '100%', padding: '0.75rem 1rem', marginBottom: '0.75rem',
+                      background: 'rgba(0,0,0,0.3)', border: '1px solid var(--glass-border)',
+                      borderRadius: '8px', color: 'var(--text-primary)',
+                      fontFamily: 'var(--font-sans)', fontSize: '0.9rem', boxSizing: 'border-box',
+                    }} />
+                  )}
+
+                  <input name="email" type="email" placeholder="Email address" required style={{
+                    width: '100%', padding: '0.75rem 1rem', marginBottom: '0.75rem',
+                    background: 'rgba(0,0,0,0.3)', border: '1px solid var(--glass-border)',
+                    borderRadius: '8px', color: 'var(--text-primary)',
+                    fontFamily: 'var(--font-sans)', fontSize: '0.9rem', boxSizing: 'border-box',
+                  }} />
+
+                  <input name="password" type="password" placeholder={authMode === 'register' ? 'Password (min 8 chars)' : 'Password'} required minLength={authMode === 'register' ? 8 : undefined} style={{
+                    width: '100%', padding: '0.75rem 1rem', marginBottom: '1rem',
+                    background: 'rgba(0,0,0,0.3)', border: '1px solid var(--glass-border)',
+                    borderRadius: '8px', color: 'var(--text-primary)',
+                    fontFamily: 'var(--font-sans)', fontSize: '0.9rem', boxSizing: 'border-box',
+                  }} />
+
+                  {authError && (
+                    <p style={{ color: '#f87171', fontSize: '0.85rem', marginBottom: '0.75rem' }}>{authError}</p>
+                  )}
+
+                  <button type="submit" disabled={authLoading} style={{
+                    width: '100%', padding: '0.75rem', borderRadius: '8px',
+                    background: 'var(--accent-primary)', color: '#fff',
+                    fontFamily: 'var(--font-sans)', fontSize: '0.95rem', fontWeight: 600,
+                    border: 'none', cursor: authLoading ? 'wait' : 'pointer',
+                    opacity: authLoading ? 0.7 : 1, transition: 'var(--transition-fast)',
+                  }}>
+                    {authLoading ? '...' : (authMode === 'login' ? 'Sign In' : 'Create Account')}
+                  </button>
+                </form>
+
+                {/* Divider */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', margin: '1.5rem 0' }}>
+                  <div style={{ flex: 1, height: '1px', background: 'var(--glass-border)' }} />
+                  <span style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem' }}>or</span>
+                  <div style={{ flex: 1, height: '1px', background: 'var(--glass-border)' }} />
+                </div>
+
+                {/* Google Sign-In */}
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                  <GoogleLogin
+                    onSuccess={handleLoginSuccess}
+                    onError={handleLoginError}
+                    theme="filled_black"
+                    shape="pill"
+                    text="signin_with"
+                  />
+                </div>
+              </div>
+
+              <button
                 onClick={() => setIsFeedbackOpen(true)}
                 style={{
-                  padding: '10px 20px',
+                  marginTop: '2rem', padding: '10px 20px',
                   borderRadius: '100px',
                   background: 'rgba(255,255,255,0.05)',
                   border: '1px solid var(--glass-border)',
@@ -414,7 +529,7 @@ function App() {
           )}
         </main>
 
-        {isAuthenticated && <Navigation />}
+        {isAuthenticated && <Navigation userProfile={userProfile} />}
 
         {/* ToS Consent Modal */}
         {isAuthenticated && userProfile && !userProfile.agreedToTos && (

@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const https = require('https');
 const { XMLParser } = require('fast-xml-parser');
 
 const parser = new XMLParser({
@@ -11,7 +10,6 @@ const parser = new XMLParser({
 router.get('/', async (req, res) => {
     try {
         const subredditsParam = req.query.subreddits || 'Advice,LifeAdvice';
-        // maxComments is not available in RSS, so we ignore it here
         const pastHours = parseInt(req.query.hours) || 12;
         
         const subreddits = subredditsParam.split(',').map(s => s.trim()).filter(Boolean);
@@ -24,45 +22,33 @@ router.get('/', async (req, res) => {
 
         let allResults = [];
 
-        // Helper to fetch RSS from Reddit via HTTPs request
-        const fetchRedditRss = (sub) => {
-            return new Promise((resolve, reject) => {
-                const options = {
-                    hostname: 'www.reddit.com',
-                    port: 443,
-                    path: `/r/${sub}/new.rss`,
-                    method: 'GET',
-                    headers: {
-                        'User-Agent': 'JulyCoachTools/1.0',
-                        'Accept': 'application/rss+xml, application/rdf+xml, application/atom+xml, application/xml, text/xml'
-                    }
-                };
-
-                const request = https.request(options, response => {
-                    let data = '';
-                    response.on('data', chunk => { data += chunk; });
-                    response.on('end', () => {
-                        if (response.statusCode === 200) {
-                            try {
-                                const parsed = parser.parse(data);
-                                resolve({ sub, data: parsed });
-                            } catch (e) {
-                                reject(new Error(`Failed to parse XML for ${sub}: ${e.message}`));
-                            }
-                        } else {
-                            resolve({ sub, error: `Status ${response.statusCode}`, data: null });
-                        }
-                    });
-                });
-
-                request.on('error', error => reject(error));
-                request.end();
+        // Fetch RSS using native fetch (handles redirects automatically)
+        const fetchRedditRss = async (sub) => {
+            const response = await fetch(`https://www.reddit.com/r/${sub}/new.rss`, {
+                headers: {
+                    'User-Agent': 'JulyCoachTools/1.0',
+                    'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml'
+                },
+                redirect: 'follow',
             });
+
+            if (!response.ok) {
+                console.error(`Reddit RSS ${sub}: HTTP ${response.status}`);
+                return { sub, data: null };
+            }
+
+            const text = await response.text();
+            try {
+                const parsed = parser.parse(text);
+                return { sub, data: parsed };
+            } catch (e) {
+                console.error(`Failed to parse XML for ${sub}:`, e.message);
+                return { sub, data: null };
+            }
         };
 
         // Fetch all subreddits in parallel
-        const fetchPromises = subreddits.map(sub => fetchRedditRss(sub));
-        const responses = await Promise.allSettled(fetchPromises);
+        const responses = await Promise.allSettled(subreddits.map(sub => fetchRedditRss(sub)));
 
         for (const promiseResult of responses) {
             if (promiseResult.status === 'fulfilled' && promiseResult.value.data && promiseResult.value.data.feed) {
@@ -73,13 +59,16 @@ router.get('/', async (req, res) => {
                 const posts = Array.isArray(entries) ? entries : [entries];
                 
                 for (const post of posts) {
-                    const updatedStr = post.updated || '';
+                    const updatedStr = post.updated || post.published || '';
                     const createdUtc = Math.floor(new Date(updatedStr).getTime() / 1000);
                     
                     if (createdUtc >= timeThreshold) {
-                        // Extract link
+                        // Extract link — can be single object or array
                         let postUrl = '';
-                        if (post.link && post.link['@_href']) {
+                        if (Array.isArray(post.link)) {
+                            const altLink = post.link.find(l => l['@_rel'] === 'alternate');
+                            postUrl = altLink ? altLink['@_href'] : post.link[0]['@_href'];
+                        } else if (post.link && post.link['@_href']) {
                             postUrl = post.link['@_href'];
                         } else {
                             postUrl = `https://www.reddit.com/r/${sub}/comments/` + (post.id || '').split('_').pop();
@@ -91,14 +80,22 @@ router.get('/', async (req, res) => {
                             authorName = post.author.name.replace('/u/', '');
                         }
 
+                        // Extract body text from content
+                        let selftext = '';
+                        if (post.content && typeof post.content === 'object') {
+                            selftext = (post.content['#text'] || '').replace(/<[^>]+>/g, ' ').substring(0, 500).trim();
+                        } else if (typeof post.content === 'string') {
+                            selftext = post.content.replace(/<[^>]+>/g, ' ').substring(0, 500).trim();
+                        }
+
                         allResults.push({
                             title: post.title,
                             url: postUrl,
                             subreddit: sub,
-                            num_comments: '?', // RSS doesn't provide comment count natively
+                            num_comments: '?',
                             created_utc: createdUtc,
                             author: authorName,
-                            selftext: 'Click link to view full post content...'
+                            selftext: selftext || 'Click link to view full post content...'
                         });
                     }
                 }

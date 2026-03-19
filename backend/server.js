@@ -12,6 +12,9 @@ const resilienceRoutes = require('./routes/resilience');
 const feedbackRoutes = require('./routes/feedback');
 const redditRoutes = require('./routes/reddit');
 const youtubeRoutes = require('./routes/youtube');
+const programRoutes = require('./routes/programs');
+const plannerRoutes = require('./routes/planner');
+const quizResultsRoutes = require('./routes/quiz-results');
 
 const app = express();
 app.set('trust proxy', 1); // Trust first proxy (Nginx)
@@ -73,6 +76,9 @@ app.use('/api/resilience', apiLimiter, resilienceRoutes);
 app.use('/api/feedback', apiLimiter, feedbackRoutes);
 app.use('/api/reddit', apiLimiter, redditRoutes);
 app.use('/api/youtube', apiLimiter, youtubeRoutes);
+app.use('/api/programs', apiLimiter, programRoutes);
+app.use('/api/planner-tasks', apiLimiter, plannerRoutes);
+app.use('/api/quiz-results', apiLimiter, quizResultsRoutes);
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'Practice Backend is running!' });

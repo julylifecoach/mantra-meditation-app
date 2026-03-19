@@ -25,6 +25,7 @@ export default function BizCoachHome({ userProfile }) {
     const [activeVideo, setActiveVideo] = useState(null);
     const [watched, setWatchedState] = useState(getWatched());
     const [monthFilter, setMonthFilter] = useState('all');
+    const [programs, setPrograms] = useState([]);
     const navigate = useNavigate();
 
     const hasAccess = userProfile?.accessBizCoach || userProfile?.role === 'admin';
@@ -44,6 +45,14 @@ export default function BizCoachHome({ userProfile }) {
             })
             .catch(e => setError(e.message))
             .finally(() => setLoading(false));
+
+        // Fetch programs
+        fetch('/api/programs', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+            .then(res => res.ok ? res.json() : [])
+            .then(data => setPrograms(data))
+            .catch(() => {});
     }, [hasAccess]);
 
     // Extract unique month/year labels from video titles or publishedAt dates
@@ -101,6 +110,41 @@ export default function BizCoachHome({ userProfile }) {
                     {videos.length} recorded calls • Click to watch
                 </p>
             </header>
+
+            {/* Programs Section */}
+            {programs.length > 0 && (
+                <div style={{ marginBottom: '2.5rem' }}>
+                    <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>Your Programs</h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
+                        {programs.map((prog, i) => (
+                            <div
+                                key={prog.id}
+                                onClick={() => navigate(`/bizcoach/program/${prog.slug}`)}
+                                className="glass-panel"
+                                style={{
+                                    padding: '1.25rem 1.5rem', cursor: 'pointer',
+                                    borderRadius: '14px',
+                                    border: '1px solid rgba(245, 158, 11, 0.3)',
+                                    background: 'rgba(245, 158, 11, 0.05)',
+                                    transition: 'transform 0.2s ease',
+                                    animation: `fadeIn 0.4s ease-out ${i * 0.05}s both`,
+                                }}
+                                onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'}
+                                onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+                            >
+                                <h4 style={{ fontSize: '1.05rem', marginBottom: '0.35rem', color: '#f59e0b' }}>{prog.title}</h4>
+                                {prog.description && (
+                                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: 1.4, marginBottom: '0.35rem' }}>{prog.description}</p>
+                                )}
+                                <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.78rem', color: 'var(--text-tertiary)' }}>
+                                    {prog.startDate && <span>{new Date(prog.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>}
+                                    {prog.playlistId && <span>📹 Recordings</span>}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Active Video Player */}
             {activeVideo && (
