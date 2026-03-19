@@ -244,6 +244,44 @@ router.post('/quiz-report', async (req, res) => {
             `
         });
 
+        // Subscribe to Kit (ConvertKit) with ego-quiz-lead tag
+        if (process.env.KIT_API_KEY) {
+            try {
+                const tagId = process.env.KIT_TAG_EGO_QUIZ || '17676211';
+                // Create/update subscriber
+                const subRes = await fetch('https://api.kit.com/v4/subscribers', {
+                    method: 'POST',
+                    headers: {
+                        'X-Kit-Api-Key': process.env.KIT_API_KEY,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email_address: email,
+                        state: 'active'
+                    })
+                });
+                const subData = await subRes.json();
+                const subscriberId = subData?.subscriber?.id;
+
+                // Tag subscriber
+                if (subscriberId) {
+                    await fetch(`https://api.kit.com/v4/tags/${tagId}/subscribers`, {
+                        method: 'POST',
+                        headers: {
+                            'X-Kit-Api-Key': process.env.KIT_API_KEY,
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ id: subscriberId })
+                    });
+                }
+                console.log(`Kit: subscribed ${email} with ego-quiz-lead tag`);
+            } catch (kitErr) {
+                console.error('Kit integration error (non-blocking):', kitErr.message);
+            }
+        }
+
         res.status(200).json({ message: 'Report sent successfully' });
     } catch (error) {
         console.error('Error sending quiz report:', error);
