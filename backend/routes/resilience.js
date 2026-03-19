@@ -135,11 +135,11 @@ router.post('/quiz-report', async (req, res) => {
         // Frustration vs Elation pattern
         let balanceInsight = '';
         if (frustrationScore > elationScore + 15) {
-            balanceInsight = `<p style="margin-bottom: 12px;">📊 <strong>Notable pattern:</strong> Your frustration score (${frustrationScore}) is significantly higher than your elation score (${elationScore}). This means ego shows up more when things go <em>against</em> you than when they go your way — a pattern often rooted in a protective identity you didn't choose.</p>`;
+            balanceInsight = `<p style="color: #C8C0B8; margin-bottom: 12px;">📊 <strong style="color: #E8E4DD;">Notable pattern:</strong> Your frustration score (${frustrationScore}) is significantly higher than your elation score (${elationScore}). This means ego shows up more when things go <em>against</em> you than when they go your way — a pattern often rooted in a protective identity you didn't choose.</p>`;
         } else if (elationScore > frustrationScore + 15) {
-            balanceInsight = `<p style="margin-bottom: 12px;">📊 <strong>Notable pattern:</strong> Your elation score (${elationScore}) is significantly higher than your frustration score (${frustrationScore}). Your ego feeds more on being right than it suffers from being wrong — often a sign of deep intelligence that became an identity.</p>`;
+            balanceInsight = `<p style="color: #C8C0B8; margin-bottom: 12px;">📊 <strong style="color: #E8E4DD;">Notable pattern:</strong> Your elation score (${elationScore}) is significantly higher than your frustration score (${frustrationScore}). Your ego feeds more on being right than it suffers from being wrong — often a sign of deep intelligence that became an identity.</p>`;
         } else {
-            balanceInsight = `<p style="margin-bottom: 12px;">📊 <strong>Notable pattern:</strong> Your frustration (${frustrationScore}) and elation (${elationScore}) scores are relatively balanced, meaning ego shows up evenly across highs and lows.</p>`;
+            balanceInsight = `<p style="color: #C8C0B8; margin-bottom: 12px;">📊 <strong style="color: #E8E4DD;">Notable pattern:</strong> Your frustration (${frustrationScore}) and elation (${elationScore}) scores are relatively balanced, meaning ego shows up evenly across highs and lows.</p>`;
         }
 
         const reportHtml = `
@@ -159,23 +159,27 @@ router.post('/quiz-report', async (req, res) => {
         <p>Thanks for taking the time to take my ego quiz! It's quite a lot of questions, but this analysis will make it worth it for you.</p>
     </div>
 
-    <div style="background: rgba(194,124,90,0.08); border: 1px solid rgba(194,124,90,0.2); border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px;">
+    <div style="background: #1a1a1a; border: 1px solid #2a2520; border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px;">
         <p style="color: #C27C5A; font-size: 48px; font-weight: 700; margin: 0 0 4px;">${totalScore}<span style="font-size: 20px; color: #8B7355;">/${maxScore}</span></p>
         <p style="color: #E8E4DD; font-size: 16px; margin: 0; font-style: italic;">${verdict}</p>
     </div>
 
-    <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
-            <div style="text-align: center; flex: 1;">
-                <p style="color: #E07A5F; font-size: 24px; font-weight: 600; margin: 0;">${frustrationScore}<span style="font-size: 14px; color: #8B7355;">/60</span></p>
-                <p style="color: #8B7355; font-size: 12px; margin: 4px 0 0;">Frustration</p>
-            </div>
-            <div style="width: 1px; background: rgba(255,255,255,0.1);"></div>
-            <div style="text-align: center; flex: 1;">
-                <p style="color: #81B29A; font-size: 24px; font-weight: 600; margin: 0;">${elationScore}<span style="font-size: 14px; color: #8B7355;">/60</span></p>
-                <p style="color: #8B7355; font-size: 12px; margin: 4px 0 0;">Elation</p>
-            </div>
-        </div>
+    <div style="background: #151820; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 16px;">
+            <tr>
+                <td width="48%" style="text-align: center; vertical-align: top;">
+                    <p style="color: #E07A5F; font-size: 28px; font-weight: 600; margin: 0;">${frustrationScore}<span style="font-size: 14px; color: #8B7355;">/60</span></p>
+                    <p style="color: #A09080; font-size: 12px; margin: 4px 0 0;">Frustration</p>
+                </td>
+                <td width="4%" style="text-align: center; vertical-align: top;">
+                    <div style="width: 1px; height: 40px; background: #2a2520; margin: 0 auto;"></div>
+                </td>
+                <td width="48%" style="text-align: center; vertical-align: top;">
+                    <p style="color: #81B29A; font-size: 28px; font-weight: 600; margin: 0;">${elationScore}<span style="font-size: 14px; color: #8B7355;">/60</span></p>
+                    <p style="color: #A09080; font-size: 12px; margin: 4px 0 0;">Elation</p>
+                </td>
+            </tr>
+        </table>
         ${balanceInsight}
     </div>
 
@@ -187,17 +191,17 @@ router.post('/quiz-report', async (req, res) => {
         <p style="margin-bottom: 16px;">But why is that hard in action? Because this is such an unconscious attachment, it may be difficult for you to identify it yourself.</p>
         <p style="margin-bottom: 24px;">The quiz aimed to ask you questions so you can surface up your unconscious attachment to the idea of yourself, or in other words: ego.</p>
         
-        <div style="padding: 20px; background: rgba(194,124,90,0.06); border-left: 3px solid #C27C5A; border-radius: 4px; margin-bottom: 16px;">
+        <div style="padding: 20px; background: #1a1714; border-left: 3px solid #C27C5A; border-radius: 4px; margin-bottom: 16px;">
             <p style="margin: 0;">${rangeMessage}</p>
         </div>
 
-        ${insight ? `<p style="margin-bottom: 16px; padding: 16px; background: rgba(255,255,255,0.03); border-radius: 8px;"><strong style="color: #E8E4DD;">${insight.title}</strong><br>${insight.text}</p>` : ''}
+        ${insight ? `<p style="margin-bottom: 16px; padding: 16px; background: #151820; border-radius: 8px;"><strong style="color: #E8E4DD;">${insight.title}</strong><br>${insight.text}</p>` : ''}
 
         <h3 style="color: #E8E4DD; font-size: 16px; margin: 24px 0 12px;">What I'd recommend</h3>
         <p>${actionableTip}</p>
     </div>
 
-    <div style="color: #C8C0B8; font-size: 15px; line-height: 1.7; margin-bottom: 24px; padding: 24px; background: rgba(255,255,255,0.03); border-radius: 12px; text-align: center;">
+    <div style="color: #C8C0B8; font-size: 15px; line-height: 1.7; margin-bottom: 24px; padding: 24px; background: #151820; border-radius: 12px; text-align: center;">
         <p style="margin-bottom: 16px;">This is of course something we can explore together, and I would love to talk to you over Zoom.</p>
         <a href="https://calendly.com/julylifecoach/time-with-billy" style="display: inline-block; background: #C27C5A; color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">Set Up Time to Meet Me →</a>
     </div>
@@ -207,7 +211,7 @@ router.post('/quiz-report', async (req, res) => {
         <p style="margin-top: 16px;">Your friend,<br><strong style="color: #E8E4DD;">Billy</strong></p>
     </div>
 
-    <div style="text-align: center; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.05);">
+    <div style="text-align: center; padding-top: 24px; border-top: 1px solid #1f1f1f;">
         <p style="color: #5A5550; font-size: 12px;">Billy Seol · July Life Coach<br>
         <a href="https://julylifecoach.com" style="color: #8B7355; text-decoration: none;">julylifecoach.com</a></p>
     </div>
