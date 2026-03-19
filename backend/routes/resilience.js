@@ -203,7 +203,7 @@ router.post('/quiz-report', async (req, res) => {
 
     <div style="color: #C8C0B8; font-size: 15px; line-height: 1.7; margin-bottom: 24px; padding: 24px; background: #151820; border-radius: 12px; text-align: center;">
         <p style="margin-bottom: 16px;">This is of course something we can explore together, and I would love to talk to you over Zoom.</p>
-        <a href="https://calendly.com/julylifecoach/time-with-billy" style="display: inline-block; background: #C27C5A; color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">Set Up Time to Meet Me →</a>
+        <a href="https://www.julylifecoach.com/free-call.html" style="display: inline-block; background: #C27C5A; color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">Set Up Time to Meet Me →</a>
     </div>
 
     <div style="color: #C8C0B8; font-size: 15px; line-height: 1.7; margin-bottom: 24px;">
