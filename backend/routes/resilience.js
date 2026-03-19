@@ -118,17 +118,21 @@ router.post('/quiz-report', async (req, res) => {
         const { totalScore, maxScore, frustrationScore, elationScore, verdict, quizName, insight } = scoreData;
         const pct = Math.round((totalScore / maxScore) * 100);
 
-        // Determine score-range specific message
+        // Billy's score-range specific copy
         let rangeMessage = '';
+        let actionableTip = '';
         if (totalScore <= 30) {
-            rangeMessage = `Your ego plays a minimal role in your daily experience — and that's rare. Most people don't get here without either deep inner work or a natural disposition toward equanimity. The fact that you scored this low means you already have a strong foundation. The question for you isn't about reducing ego — it's about what you build from this place of clarity.`;
+            rangeMessage = `Your ego score is relatively low. In terms of suffering because of the self, you're unlikely to be impacted by it.<br><br>People arrive at this score zone in two ways: one, their upbringing gave them a diversity of viewpoints and experiences — they understand that every experience is just different, and there is no right or wrong.<br><br>The other way is to arrive at it via practice. They suffered before because they were clinging on being right, being good, and so on — but in order to be free from suffering they relinquished their existing worldview.<br><br>I don't know which one you would fall under, but I'd love to hear your opinion about it.`;
+            actionableTip = `You probably have mindfulness as a part of your practice, whether you're conscious of it or not. I would encourage exploring a deeper understanding of your personal history as a next step.`;
         } else if (totalScore <= 75) {
-            rangeMessage = `You're in the range where most self-aware people land. Your ego shows up — it has opinions, it reacts, it wants to be right sometimes — but you also have the awareness to notice it. This is actually the most powerful place to be, because awareness is the prerequisite for change. The patterns you see in your breakdown below are the exact places where targeted awareness will create the biggest shifts.`;
+            rangeMessage = `Your ego score is in the medium zone. This is actually where the statistical majority of people would be.<br><br>The idea of the self is elusive. It obviously exists, because the seemingly irrefutable evidence of your existence is breathing inside of your body. But at the same time... If I asked you what you are, and what ONLY you are and not anything / anyone else, you'd find that it's a very difficult question to answer.<br><br>The nice thing about being in this zone is, you probably don't realize your suffering all that much. You think everyone more or less lives like this.<br><br>But the not-so-nice thing about being in this zone is, you're probably suffering more than you think. There is a difference between the conscious mind and the unconscious mind. Your conscious mind is aware of the attachment to ego when it is given these questions in the quiz, but you probably don't think about these situations all the time.`;
+            actionableTip = `You probably don't feel an urgent need to do anything big about your life right now, but consider coaching work like insurance: when life suddenly doesn't go your way, wouldn't you want to be prepared?`;
         } else {
-            rangeMessage = `Your ego is highly active — and that's not a judgment, it's information. A high score means your nervous system has learned to process most experiences through the lens of self. That's usually a protection mechanism, one that served you well at some point. The insight here isn't to "fix" your ego — it's to understand what it's protecting you from. When you find that, the score takes care of itself.`;
+            rangeMessage = `Your ego score is in the high zone. I would guess that every day is somewhat of a struggle for you and you're not looking forward to another day beginning.<br><br>Your ego is defensively activated — it's always on the lookout for potential triggers for insecurity. Possibly because it has been attacked by others before during formative years.<br><br>Your ego is looking to be "saved" by good fortune and validation. Because both of these are true at the same time, you would constantly go through up-and-down cycles of emotions.<br><br>You may feel like life is something you're forced to live under really unfair rules. You're right, but you keep needing to succumb to others. You rarely get a break from life, but life always takes it away from you after a while. You're not living your life; your life is living you.`;
+            actionableTip = `Before anything else, I recommend having some kind of relief to your built-up stress. Engage in a stress-breaking activity or talk with someone in a safe environment to let pressure out.`;
         }
 
-        // Frustration vs Elation insight
+        // Frustration vs Elation pattern
         let balanceInsight = '';
         if (frustrationScore > elationScore + 15) {
             balanceInsight = `<p style="margin-bottom: 12px;">📊 <strong>Notable pattern:</strong> Your frustration score (${frustrationScore}) is significantly higher than your elation score (${elationScore}). This means ego shows up more when things go <em>against</em> you than when they go your way — a pattern often rooted in a protective identity you didn't choose.</p>`;
@@ -148,6 +152,11 @@ router.post('/quiz-report', async (req, res) => {
     <div style="text-align: center; margin-bottom: 32px;">
         <p style="color: #C27C5A; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px;">July Life Coach</p>
         <h1 style="color: #E8E4DD; font-size: 28px; font-weight: 600; margin: 0;">Your Ego Check Results</h1>
+    </div>
+
+    <div style="color: #C8C0B8; font-size: 15px; line-height: 1.7; margin-bottom: 24px;">
+        <p>Hey there,</p>
+        <p>Thanks for taking the time to take my ego quiz! It's quite a lot of questions, but this analysis will make it worth it for you.</p>
     </div>
 
     <div style="background: rgba(194,124,90,0.08); border: 1px solid rgba(194,124,90,0.2); border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px;">
@@ -171,16 +180,31 @@ router.post('/quiz-report', async (req, res) => {
     </div>
 
     <div style="color: #C8C0B8; font-size: 15px; line-height: 1.7; margin-bottom: 24px;">
-        <h2 style="color: #E8E4DD; font-size: 18px; margin-bottom: 12px;">What This Means For You</h2>
-        <p style="margin-bottom: 16px;">${rangeMessage}</p>
-        ${insight ? `<p style="margin-bottom: 16px; padding: 16px; background: rgba(194,124,90,0.06); border-left: 3px solid #C27C5A; border-radius: 4px;"><strong style="color: #E8E4DD;">${insight.title}</strong><br>${insight.text}</p>` : ''}
-        <h3 style="color: #E8E4DD; font-size: 16px; margin: 24px 0 12px;">One Thing You Can Do Today</h3>
-        <p>The next time you notice a strong reaction — frustration or elation — pause for three seconds before acting on it. Just three seconds. In that gap, ask: <em>is this me, or is this my ego?</em> You don't need to answer it. The question itself creates the space.</p>
+        <h2 style="color: #E8E4DD; font-size: 18px; margin-bottom: 12px;">What this likely means for you</h2>
+        <p style="margin-bottom: 16px;">Let me start by telling you why I came up with this quiz.</p>
+        <p style="margin-bottom: 16px;">I am a life coach who primarily deals with suffering, because to me happiness is complete freedom from suffering. To arrive at this happiness we have to understand WHY we suffer so that we can overcome the REASONS for suffering.</p>
+        <p style="margin-bottom: 16px;">One of those core reasons happens to be our attachment to the idea of the self. The unrealistically easy thing to do now is, stop attaching to the self!</p>
+        <p style="margin-bottom: 16px;">But why is that hard in action? Because this is such an unconscious attachment, it may be difficult for you to identify it yourself.</p>
+        <p style="margin-bottom: 24px;">The quiz aimed to ask you questions so you can surface up your unconscious attachment to the idea of yourself, or in other words: ego.</p>
+        
+        <div style="padding: 20px; background: rgba(194,124,90,0.06); border-left: 3px solid #C27C5A; border-radius: 4px; margin-bottom: 16px;">
+            <p style="margin: 0;">${rangeMessage}</p>
+        </div>
+
+        ${insight ? `<p style="margin-bottom: 16px; padding: 16px; background: rgba(255,255,255,0.03); border-radius: 8px;"><strong style="color: #E8E4DD;">${insight.title}</strong><br>${insight.text}</p>` : ''}
+
+        <h3 style="color: #E8E4DD; font-size: 16px; margin: 24px 0 12px;">What I'd recommend</h3>
+        <p>${actionableTip}</p>
     </div>
 
-    <div style="text-align: center; padding: 32px 0; border-top: 1px solid rgba(255,255,255,0.05);">
-        <p style="color: #C8C0B8; font-size: 14px; margin-bottom: 16px;">Want to explore what's driving these patterns?</p>
-        <a href="https://calendly.com/julylifecoach/time-with-billy" style="display: inline-block; background: #C27C5A; color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">Book a Free Discovery Call</a>
+    <div style="color: #C8C0B8; font-size: 15px; line-height: 1.7; margin-bottom: 24px; padding: 24px; background: rgba(255,255,255,0.03); border-radius: 12px; text-align: center;">
+        <p style="margin-bottom: 16px;">This is of course something we can explore together, and I would love to talk to you over Zoom.</p>
+        <a href="https://calendly.com/julylifecoach/time-with-billy" style="display: inline-block; background: #C27C5A; color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">Set Up Time to Meet Me →</a>
+    </div>
+
+    <div style="color: #C8C0B8; font-size: 15px; line-height: 1.7; margin-bottom: 24px;">
+        <p>Let me know what you think!</p>
+        <p style="margin-top: 16px;">Your friend,<br><strong style="color: #E8E4DD;">Billy</strong></p>
     </div>
 
     <div style="text-align: center; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.05);">
@@ -196,7 +220,7 @@ router.post('/quiz-report', async (req, res) => {
         await transporter.sendMail({
             from: '"Billy Seol" <billy@julylifecoach.com>',
             to: email,
-            subject: `Your Ego Check Results — ${verdict}`,
+            subject: 'Your Ego Check Results — Here\'s What They Mean',
             html: reportHtml
         });
 
