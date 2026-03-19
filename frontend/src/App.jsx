@@ -21,6 +21,7 @@ import SelfCoachingWiki from './pages/SelfCoachingWiki';
 import BizCoachHome from './pages/BizCoachHome';
 import ProgramPage from './pages/ProgramPage';
 import ProgramAdmin from './pages/ProgramAdmin';
+import SessionView from './pages/SessionView';
 import ConsentModal from './components/ConsentModal';
 import FeedbackModal from './components/FeedbackModal';
 
@@ -388,6 +389,7 @@ function App() {
               <Route path="/bizcoach" element={<BizCoachHome userProfile={userProfile} />} />
               <Route path="/bizcoach/program/:slug" element={<ProgramPage userProfile={userProfile} />} />
               <Route path="/hub" element={<UserHub userProfile={userProfile} />} />
+              <Route path="/hub/session/:id" element={<SessionView userProfile={userProfile} />} />
               <Route path="/108-challenge" element={<AdvancedPractice108 userProfile={userProfile} />} />
               {isAdmin && <Route path="/admin" element={<AdminPanel />} />}
               {isAdmin && <Route path="/admin/programs" element={<ProgramAdmin />} />}

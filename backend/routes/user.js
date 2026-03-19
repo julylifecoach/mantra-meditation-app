@@ -67,4 +67,18 @@ router.get('/coaching-sessions', authenticate, async (req, res) => {
     }
 });
 
+// GET /api/user/coaching-sessions/:id - Full session detail
+router.get('/coaching-sessions/:id', authenticate, async (req, res) => {
+    try {
+        const session = await prisma.coachingSession.findFirst({
+            where: { id: req.params.id, userId: req.userId }
+        });
+        if (!session) return res.status(404).json({ error: 'Session not found' });
+        res.json(session);
+    } catch (error) {
+        console.error('Get session detail error:', error);
+        res.status(500).json({ error: 'Failed to load session' });
+    }
+});
+
 module.exports = router;

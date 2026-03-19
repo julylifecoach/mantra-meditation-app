@@ -13,6 +13,12 @@ export default function AdminPanel() {
     const [sessionsLoading, setSessionsLoading] = useState(false);
     const [newSessionDate, setNewSessionDate] = useState(() => new Date().toISOString().split('T')[0]);
     const [newSessionTopics, setNewSessionTopics] = useState('');
+    const [editingSessionId, setEditingSessionId] = useState(null);
+    const [editingNotes, setEditingNotes] = useState('');
+    const [primaryNotes, setPrimaryNotes] = useState('');
+    const [playlistUrl, setPlaylistUrl] = useState('');
+    const [savingNotes, setSavingNotes] = useState(false);
+    const [savingPlaylist, setSavingPlaylist] = useState(false);
 
     useEffect(() => {
         fetchUsers();
@@ -37,6 +43,8 @@ export default function AdminPanel() {
     const openSessionModal = async (user) => {
         setSelectedUser(user);
         setSessionsLoading(true);
+        setPrimaryNotes(user.primaryNotes || '');
+        setPlaylistUrl(user.playlistUrl || '');
         try {
             const token = localStorage.getItem('aura_token');
             const res = await fetch(`/api/admin/users/${user.id}/sessions`, {
@@ -55,6 +63,10 @@ export default function AdminPanel() {
         setSelectedUser(null);
         setUserSessions([]);
         setNewSessionTopics('');
+        setEditingSessionId(null);
+        setEditingNotes('');
+        setPrimaryNotes('');
+        setPlaylistUrl('');
     };
 
     const handleAddSession = async () => {
@@ -87,12 +99,50 @@ export default function AdminPanel() {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             setUserSessions(userSessions.filter(s => s.id !== sessionId));
-
-            // Update _count locally
             setUsers(prev => prev.map(u =>
                 u.id === selectedUser.id ? { ...u, _count: { ...u._count, coachingSessions: Math.max(0, (u._count?.coachingSessions || 1) - 1) } } : u
             ));
         } catch (e) { console.error('Failed to delete session') }
+    };
+
+    const handleSaveSessionNotes = async (sessionId) => {
+        try {
+            const token = localStorage.getItem('aura_token');
+            await fetch(`/api/admin/sessions/${sessionId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ recordNotes: editingNotes })
+            });
+            setUserSessions(prev => prev.map(s => s.id === sessionId ? { ...s, recordNotes: editingNotes } : s));
+            setEditingSessionId(null);
+            setEditingNotes('');
+        } catch (e) { console.error('Failed to save notes') }
+    };
+
+    const handleSavePrimaryNotes = async () => {
+        setSavingNotes(true);
+        try {
+            const token = localStorage.getItem('aura_token');
+            await fetch(`/api/admin/users/${selectedUser.id}/notes`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ primaryNotes })
+            });
+        } catch (e) { console.error('Failed to save notes') }
+        finally { setSavingNotes(false); }
+    };
+
+    const handleSavePlaylist = async () => {
+        setSavingPlaylist(true);
+        try {
+            const token = localStorage.getItem('aura_token');
+            await fetch(`/api/admin/users/${selectedUser.id}/playlist`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ playlistUrl })
+            });
+        } catch (e) { console.error('Failed to save playlist') }
+        finally { setSavingPlaylist(false); }
     };
 
     const toggleCanWrite = async (userId, currentValue) => {
@@ -173,7 +223,7 @@ export default function AdminPanel() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-sans)', minWidth: '800px' }}>
                     <thead>
                         <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
-                            {['Nickname', 'Real Name', 'Email', 'Posts', 'Write', 'Permissions', 'Joined'].map(h => (
+                            {['Nickname', 'Real Name', 'Email', 'Posts', 'Write', 'Permissions', 'Joined', ''].map(h => (
                                 <th key={h} style={{
                                     textAlign: 'left', padding: '0.8rem 1rem',
                                     color: 'var(--text-tertiary)', fontWeight: 500,
@@ -246,11 +296,189 @@ export default function AdminPanel() {
                                 <td style={{ padding: '0.8rem 1rem', color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>
                                     {new Date(user.createdAt).toLocaleDateString()}
                                 </td>
+                                <td style={{ padding: '0.8rem 1rem' }}>
+                                    <button onClick={() => openSessionModal(user)} style={{
+                                        background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)',
+                                        color: 'var(--text-secondary)', padding: '4px 12px', borderRadius: '8px',
+                                        cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.8rem',
+                                        transition: 'var(--transition-fast)',
+                                    }}>Manage ({user._count?.coachingSessions || 0})</button>
+                                </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </div>
+
+            {/* Session / Notes Modal */}
+            {selectedUser && (
+                <div style={{
+                    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    zIndex: 1000, animation: 'fadeIn 0.2s ease-out',
+                }} onClick={closeSessionModal}>
+                    <div className="glass-panel" style={{
+                        maxWidth: '700px', width: '95%', maxHeight: '85vh',
+                        overflow: 'auto', padding: '2rem',
+                    }} onClick={e => e.stopPropagation()}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                            <h3 style={{ fontSize: '1.3rem' }}>Manage: {selectedUser.displayName}</h3>
+                            <button onClick={closeSessionModal} style={{
+                                background: 'none', border: 'none', color: 'var(--text-tertiary)',
+                                fontSize: '1.5rem', cursor: 'pointer',
+                            }}>×</button>
+                        </div>
+
+                        {/* Primary Notes */}
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                                📝 Primary Notes (Markdown)
+                            </label>
+                            <textarea
+                                value={primaryNotes}
+                                onChange={e => setPrimaryNotes(e.target.value)}
+                                placeholder="Write client overview notes in Markdown..."
+                                rows={6}
+                                style={{
+                                    width: '100%', padding: '0.75rem', fontFamily: 'monospace', fontSize: '0.85rem',
+                                    background: 'rgba(0,0,0,0.3)', border: '1px solid var(--glass-border)',
+                                    borderRadius: '8px', color: 'var(--text-primary)', resize: 'vertical',
+                                    lineHeight: 1.6, boxSizing: 'border-box',
+                                }}
+                            />
+                            <button onClick={handleSavePrimaryNotes} disabled={savingNotes} style={{
+                                marginTop: '0.5rem', padding: '6px 16px', borderRadius: '8px',
+                                background: 'var(--accent-primary)', color: '#fff', border: 'none',
+                                cursor: 'pointer', fontFamily: 'var(--font-sans)', fontSize: '0.85rem',
+                                opacity: savingNotes ? 0.6 : 1,
+                            }}>{savingNotes ? 'Saving...' : 'Save Notes'}</button>
+                        </div>
+
+                        {/* Playlist URL */}
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                                🎵 Playlist URL
+                            </label>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <input
+                                    type="url"
+                                    value={playlistUrl}
+                                    onChange={e => setPlaylistUrl(e.target.value)}
+                                    placeholder="YouTube or Spotify playlist URL..."
+                                    style={{
+                                        flex: 1, padding: '0.5rem 0.75rem',
+                                        background: 'rgba(0,0,0,0.3)', border: '1px solid var(--glass-border)',
+                                        borderRadius: '8px', color: 'var(--text-primary)',
+                                        fontFamily: 'var(--font-sans)', fontSize: '0.85rem',
+                                    }}
+                                />
+                                <button onClick={handleSavePlaylist} disabled={savingPlaylist} style={{
+                                    padding: '6px 16px', borderRadius: '8px',
+                                    background: 'var(--accent-primary)', color: '#fff', border: 'none',
+                                    cursor: 'pointer', fontFamily: 'var(--font-sans)', fontSize: '0.85rem',
+                                    opacity: savingPlaylist ? 0.6 : 1,
+                                }}>{savingPlaylist ? '...' : 'Save'}</button>
+                            </div>
+                        </div>
+
+                        <hr style={{ border: '0', borderTop: '1px solid var(--glass-border)', margin: '1.5rem 0' }} />
+
+                        {/* Session Logs */}
+                        <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>📋 Session Logs</h4>
+
+                        {/* Add Session */}
+                        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+                            <input type="date" value={newSessionDate} onChange={e => setNewSessionDate(e.target.value)}
+                                style={{
+                                    padding: '6px 10px', background: 'rgba(0,0,0,0.3)',
+                                    border: '1px solid var(--glass-border)', borderRadius: '8px',
+                                    color: 'var(--text-primary)', fontFamily: 'var(--font-sans)', fontSize: '0.85rem',
+                                }} />
+                            <input type="text" value={newSessionTopics} onChange={e => setNewSessionTopics(e.target.value)}
+                                placeholder="Session title / topics"
+                                style={{
+                                    flex: 1, minWidth: '150px', padding: '6px 10px',
+                                    background: 'rgba(0,0,0,0.3)', border: '1px solid var(--glass-border)',
+                                    borderRadius: '8px', color: 'var(--text-primary)',
+                                    fontFamily: 'var(--font-sans)', fontSize: '0.85rem',
+                                }} />
+                            <button onClick={handleAddSession} style={{
+                                padding: '6px 16px', borderRadius: '8px',
+                                background: 'rgba(16, 185, 129, 0.2)', color: '#10b981',
+                                border: '1px solid rgba(16, 185, 129, 0.4)',
+                                cursor: 'pointer', fontFamily: 'var(--font-sans)', fontSize: '0.85rem',
+                            }}>+ Add</button>
+                        </div>
+
+                        {sessionsLoading ? (
+                            <p style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>Loading sessions...</p>
+                        ) : userSessions.length === 0 ? (
+                            <p style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>No sessions yet.</p>
+                        ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                {userSessions.map(s => (
+                                    <div key={s.id} style={{
+                                        padding: '1rem', borderRadius: '10px',
+                                        background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)',
+                                    }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                            <div>
+                                                <strong style={{ fontSize: '0.95rem' }}>{s.mainTopics}</strong>
+                                                <span style={{ marginLeft: '0.75rem', fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
+                                                    {new Date(s.sessionDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                </span>
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                <button onClick={() => {
+                                                    if (editingSessionId === s.id) {
+                                                        setEditingSessionId(null); setEditingNotes('');
+                                                    } else {
+                                                        setEditingSessionId(s.id); setEditingNotes(s.recordNotes || '');
+                                                    }
+                                                }} style={{
+                                                    background: 'none', border: 'none', color: 'var(--accent-primary)',
+                                                    cursor: 'pointer', fontSize: '0.8rem', fontFamily: 'var(--font-sans)',
+                                                }}>{editingSessionId === s.id ? 'Cancel' : 'Edit Notes'}</button>
+                                                <button onClick={() => handleDeleteSession(s.id)} style={{
+                                                    background: 'none', border: 'none', color: '#ef4444',
+                                                    cursor: 'pointer', fontSize: '0.8rem', fontFamily: 'var(--font-sans)',
+                                                }}>Delete</button>
+                                            </div>
+                                        </div>
+                                        {editingSessionId === s.id ? (
+                                            <div>
+                                                <textarea
+                                                    value={editingNotes}
+                                                    onChange={e => setEditingNotes(e.target.value)}
+                                                    rows={8}
+                                                    placeholder="Session notes (Markdown)..."
+                                                    style={{
+                                                        width: '100%', padding: '0.75rem', fontFamily: 'monospace',
+                                                        fontSize: '0.85rem', background: 'rgba(0,0,0,0.3)',
+                                                        border: '1px solid var(--glass-border)', borderRadius: '8px',
+                                                        color: 'var(--text-primary)', resize: 'vertical',
+                                                        lineHeight: 1.6, boxSizing: 'border-box',
+                                                    }}
+                                                />
+                                                <button onClick={() => handleSaveSessionNotes(s.id)} style={{
+                                                    marginTop: '0.5rem', padding: '6px 16px', borderRadius: '8px',
+                                                    background: 'var(--accent-primary)', color: '#fff',
+                                                    border: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)',
+                                                    fontSize: '0.85rem',
+                                                }}>Save Notes</button>
+                                            </div>
+                                        ) : s.recordNotes ? (
+                                            <p style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)', marginTop: '0.25rem' }}>
+                                                {s.recordNotes.substring(0, 120)}{s.recordNotes.length > 120 ? '...' : ''}
+                                            </p>
+                                        ) : null}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* Minimal styles for the permission badges */}
             <style>{`

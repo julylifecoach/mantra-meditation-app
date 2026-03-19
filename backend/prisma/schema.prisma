@@ -26,6 +26,10 @@ model User {
   accessClientPortal   Boolean           @default(false)
   accessBizCoach       Boolean           @default(false)
 
+  // Client Portal Content
+  primaryNotes         String?
+  playlistUrl          String?
+
   reflections          Reflection[]
   subscription         Subscription?
   resilienceScores     ResilienceScore[]

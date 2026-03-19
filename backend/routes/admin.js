@@ -160,4 +160,34 @@ router.delete('/sessions/:sessionId', requireAdmin, async (req, res) => {
     }
 });
 
+// --- CLIENT PORTAL CONTENT (Admin) ---
+
+// PUT /api/admin/users/:id/notes - Save primary notes
+router.put('/users/:id/notes', requireAdmin, async (req, res) => {
+    try {
+        const user = await prisma.user.update({
+            where: { id: req.params.id },
+            data: { primaryNotes: req.body.primaryNotes || '' }
+        });
+        res.json({ id: user.id, primaryNotes: user.primaryNotes });
+    } catch (error) {
+        console.error('Admin save notes error:', error);
+        res.status(500).json({ error: 'Failed to save notes' });
+    }
+});
+
+// PUT /api/admin/users/:id/playlist - Save playlist URL
+router.put('/users/:id/playlist', requireAdmin, async (req, res) => {
+    try {
+        const user = await prisma.user.update({
+            where: { id: req.params.id },
+            data: { playlistUrl: req.body.playlistUrl || '' }
+        });
+        res.json({ id: user.id, playlistUrl: user.playlistUrl });
+    } catch (error) {
+        console.error('Admin save playlist error:', error);
+        res.status(500).json({ error: 'Failed to save playlist URL' });
+    }
+});
+
 module.exports = router;
