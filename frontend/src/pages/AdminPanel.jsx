@@ -10,6 +10,8 @@ export default function AdminPanel() {
     // Session Modal State
     const [selectedUser, setSelectedUser] = useState(null);
     const [userSessions, setUserSessions] = useState([]);
+    const [sessionPage, setSessionPage] = useState(1);
+    const SESSIONS_PER_PAGE = 10;
     const [sessionsLoading, setSessionsLoading] = useState(false);
     const [newSessionDate, setNewSessionDate] = useState(() => new Date().toISOString().split('T')[0]);
     const [newSessionTopics, setNewSessionTopics] = useState('');
@@ -43,6 +45,7 @@ export default function AdminPanel() {
     const openSessionModal = async (user) => {
         setSelectedUser(user);
         setSessionsLoading(true);
+        setSessionPage(1);
         setPrimaryNotes(user.primaryNotes || '');
         setPlaylistUrl(user.playlistUrl || '');
         try {
@@ -62,6 +65,7 @@ export default function AdminPanel() {
     const closeSessionModal = () => {
         setSelectedUser(null);
         setUserSessions([]);
+        setSessionPage(1);
         setNewSessionTopics('');
         setEditingSessionId(null);
         setEditingNotes('');
@@ -196,6 +200,25 @@ export default function AdminPanel() {
         }
     };
 
+    // Pagination & Search State
+    const [userSearch, setUserSearch] = useState('');
+    const [userPage, setUserPage] = useState(1);
+    const USERS_PER_PAGE = 10;
+
+    // ... existing init ...
+    useEffect(() => {
+        fetchUsers();
+    }, []);
+
+    // ... filtering and slicing ...
+    const filteredUsers = users.filter(u => 
+        (u.email || '').toLowerCase().includes(userSearch.toLowerCase()) || 
+        (u.displayName || '').toLowerCase().includes(userSearch.toLowerCase()) ||
+        (u.nickname || '').toLowerCase().includes(userSearch.toLowerCase())
+    );
+    const totalUserPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE) || 1;
+    const displayedUsers = filteredUsers.slice((userPage - 1) * USERS_PER_PAGE, userPage * USERS_PER_PAGE);
+
     if (loading) return <div style={{ textAlign: 'center', marginTop: '5rem' }}>Loading...</div>;
     if (error) return (
         <div style={{ textAlign: 'center', marginTop: '5rem', color: 'var(--text-secondary)' }}>
@@ -203,6 +226,16 @@ export default function AdminPanel() {
             <p>{error}</p>
         </div>
     );
+
+    const smallBtn = {
+        padding: '6px 14px',
+        borderRadius: '8px',
+        border: '1px solid var(--glass-border)',
+        color: 'var(--text-secondary)',
+        cursor: 'pointer',
+        fontFamily: 'var(--font-sans)',
+        fontSize: '0.85rem',
+    };
 
     return (
         <div style={{ padding: '2rem', width: '100%', maxWidth: '1000px', margin: '0 auto' }}>
@@ -219,7 +252,34 @@ export default function AdminPanel() {
                 }}>📋 Manage Programs</button>
             </header>
 
-            <div className="glass-panel" style={{ padding: '1.5rem', overflowX: 'auto' }}>
+            <div className="glass-panel" style={{ padding: '1.5rem', overflowX: 'auto', marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <input 
+                        type="text" 
+                        placeholder="Search users by name or email..." 
+                        value={userSearch}
+                        onChange={(e) => { setUserSearch(e.target.value); setUserPage(1); }}
+                        style={{
+                            padding: '0.6rem 1rem', width: '300px', background: 'rgba(0,0,0,0.2)',
+                            border: '1px solid var(--glass-border)', borderRadius: '8px', color: 'white',
+                            fontFamily: 'var(--font-sans)'
+                        }}
+                    />
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                        <button 
+                            disabled={userPage === 1} 
+                            onClick={() => setUserPage(p => Math.max(1, p - 1))}
+                            style={{ ...smallBtn, background: 'rgba(255,255,255,0.1)', opacity: userPage === 1 ? 0.3 : 1 }}
+                        >Prev</button>
+                        <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Page {userPage} of {totalUserPages}</span>
+                        <button 
+                            disabled={userPage === totalUserPages} 
+                            onClick={() => setUserPage(p => Math.min(totalUserPages, p + 1))}
+                            style={{ ...smallBtn, background: 'rgba(255,255,255,0.1)', opacity: userPage === totalUserPages ? 0.3 : 1 }}
+                        >Next</button>
+                    </div>
+                </div>
+
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-sans)', minWidth: '800px' }}>
                     <thead>
                         <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
@@ -236,7 +296,7 @@ export default function AdminPanel() {
                         </tr>
                     </thead>
                     <tbody>
-                        {users.map((user, i) => (
+                        {displayedUsers.map((user, i) => (
                             <tr
                                 key={user.id}
                                 style={{
@@ -416,7 +476,24 @@ export default function AdminPanel() {
                             <p style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>No sessions yet.</p>
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                {userSessions.map(s => (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                        Showing {Math.min((sessionPage - 1) * SESSIONS_PER_PAGE + 1, userSessions.length)} - {Math.min(sessionPage * SESSIONS_PER_PAGE, userSessions.length)} of {userSessions.length}
+                                    </span>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <button 
+                                            disabled={sessionPage === 1}
+                                            onClick={() => setSessionPage(p => Math.max(1, p - 1))}
+                                            style={{ ...smallBtn, padding: '4px 10px', fontSize: '0.8rem', opacity: sessionPage === 1 ? 0.4 : 1 }}
+                                        >Prev</button>
+                                        <button 
+                                            disabled={sessionPage >= Math.ceil(userSessions.length / SESSIONS_PER_PAGE)}
+                                            onClick={() => setSessionPage(p => Math.min(Math.ceil(userSessions.length / SESSIONS_PER_PAGE), p + 1))}
+                                            style={{ ...smallBtn, padding: '4px 10px', fontSize: '0.8rem', opacity: sessionPage >= Math.ceil(userSessions.length / SESSIONS_PER_PAGE) ? 0.4 : 1 }}
+                                        >Next</button>
+                                    </div>
+                                </div>
+                                {userSessions.slice((sessionPage - 1) * SESSIONS_PER_PAGE, sessionPage * SESSIONS_PER_PAGE).map(s => (
                                     <div key={s.id} style={{
                                         padding: '1rem', borderRadius: '10px',
                                         background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)',
