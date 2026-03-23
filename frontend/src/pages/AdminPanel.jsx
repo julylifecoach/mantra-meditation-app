@@ -250,6 +250,12 @@ export default function AdminPanel() {
                     border: '1px solid rgba(245, 158, 11, 0.3)', cursor: 'pointer',
                     fontFamily: 'var(--font-sans)', fontSize: '0.9rem', fontWeight: 500,
                 }}>📋 Manage Programs</button>
+                <button onClick={() => navigate('/admin/quiz-analytics')} style={{
+                    marginTop: '1rem', marginLeft: '0.75rem', padding: '0.5rem 1.25rem', borderRadius: '10px',
+                    background: 'rgba(139, 92, 246, 0.15)', color: '#8b5cf6',
+                    border: '1px solid rgba(139, 92, 246, 0.3)', cursor: 'pointer',
+                    fontFamily: 'var(--font-sans)', fontSize: '0.9rem', fontWeight: 500,
+                }}>📊 Quiz Analytics</button>
             </header>
 
             <div className="glass-panel" style={{ padding: '1.5rem', overflowX: 'auto', marginBottom: '2rem' }}>

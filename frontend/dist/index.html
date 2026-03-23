@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#7c3aed" />
+  <meta name="description" content="A mindful meditation and prostration practice app from July Life Coach" />
+
+  <link rel="canonical" href="https://practice.julylifecoach.com/">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://practice.julylifecoach.com/">
+  <meta property="og:title" content="Practice — July Life Coach">
+  <meta property="og:description" content="A mindful meditation and prostration practice app from July Life Coach">
+  <meta property="og:site_name" content="July Life Coach">
+  <meta property="og:image" content="https://tools.julylifecoach.com/favicon.png">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://practice.julylifecoach.com/">
+  <meta property="twitter:title" content="Practice — July Life Coach">
+  <meta property="twitter:description" content="A mindful meditation and prostration practice app from July Life Coach">
+  <meta property="twitter:image" content="https://tools.julylifecoach.com/favicon.png"> <!-- Apple PWA support -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Practice" />
+  <link rel="apple-touch-icon" href="/logo.png" />
+
+  <title>Practice</title>
+
+  <!-- Google Fonts - Asynchronous Loading -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script type="module" crossorigin src="/assets/index-BrIbdq0V.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-DnZwIEV9.css">
+</head>
+
+<body>
+    <!-- ========== FLOATING UNIVERSAL NAV ========== -->
+    <div id="universal-nav-drawer" style="position: fixed; top: 0; right: -300px; width: 300px; height: 100vh; background: #fdfdfc; box-shadow: -4px 0 15px rgba(0,0,0,0.05); z-index: 99999; transition: right 0.3s ease; padding: 2rem; font-family: 'Inter', sans-serif; display: flex; flex-direction: column;">
+        <button onclick="document.getElementById('universal-nav-drawer').style.right = '-300px'" style="align-self: flex-end; background: none; border: none; font-size: 2rem; cursor: pointer; color: #737373; line-height: 1;">&times;</button>
+        <h3 style="font-weight: 600; color: #1c1c1c; margin-bottom: 2rem; font-family: 'Cormorant Garamond', serif; font-size: 1.5rem;">July Ecosystem</h3>
+        <a href="https://julylifecoach.com/" style="text-decoration: none; color: #4a4a4a; margin-bottom: 1rem; font-size: 1.1rem; border-bottom: 1px solid transparent;" onmouseover="this.style.color='#1c1c1c'" onmouseout="this.style.color='#4a4a4a'">Main Site</a>
+        <a href="https://services.julylifecoach.com/" style="text-decoration: none; color: #4a4a4a; margin-bottom: 1rem; font-size: 1.1rem;" onmouseover="this.style.color='#1c1c1c'" onmouseout="this.style.color='#4a4a4a'">Services</a>
+        <a href="https://resources.julylifecoach.com/" style="text-decoration: none; color: #4a4a4a; margin-bottom: 1rem; font-size: 1.1rem;" onmouseover="this.style.color='#1c1c1c'" onmouseout="this.style.color='#4a4a4a'">Resources</a>
+        <a href="https://tools.julylifecoach.com/" style="text-decoration: none; color: #4a4a4a; margin-bottom: 1rem; font-size: 1.1rem;" onmouseover="this.style.color='#1c1c1c'" onmouseout="this.style.color='#4a4a4a'">Tools</a>
+        <a href="https://shop.julylifecoach.com/" style="text-decoration: none; color: #4a4a4a; margin-bottom: 1.5rem; font-size: 1.1rem; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 1.5rem;" onmouseover="this.style.color='#1c1c1c'" onmouseout="this.style.color='#4a4a4a'">Shop</a>
+        <a href="https://practice.julylifecoach.com/" style="text-decoration: none; color: #4a4a4a; margin-bottom: 1rem; font-size: 1.1rem;" onmouseover="this.style.color='#1c1c1c'" onmouseout="this.style.color='#4a4a4a'">Practice App</a>
+        <a href="https://french.julylifecoach.com/" style="text-decoration: none; color: #4a4a4a; margin-bottom: 1rem; font-size: 1.1rem;" onmouseover="this.style.color='#1c1c1c'" onmouseout="this.style.color='#4a4a4a'">French App</a>
+    </div>
+    <button class="ecosystem-toggle-btn" onclick="document.getElementById('universal-nav-drawer').style.right = '0'" style="position: fixed; bottom: 2rem; right: 2rem; width: 60px; height: 60px; border-radius: 50%; background: #1c1c1c; color: white; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); cursor: pointer; z-index: 99998; display: flex; align-items: center; justify-content: center; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" aria-label="Open July Ecosystem Menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="2"></circle><path d="M12 2a10 10 0 0 1 10 10"></path></svg>
+
+    </button>
+<div id="root"></div>
+  <style>
+    /* Adjust ecosystem button on mobile so it doesn't overlap with the bottom nav */
+    @media (max-width: 768px) {
+      .ecosystem-toggle-btn {
+        bottom: 5.5rem !important; /* Above the mobile nav */
+        width: 50px !important;
+        height: 50px !important;
+      }
+    }
+  </style>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((reg) => console.log('SW registered:', reg.scope))
+          .catch((err) => console.log('SW registration failed:', err));
+      });
+    }
+  </script>
+    <!-- ========== UNIVERSAL FOOTER ========== -->
+    <footer style="text-align: center; padding: 4rem 2rem; border-top: 1px solid rgba(0,0,0,0.05); font-family: 'Inter', sans-serif; font-size: 0.9rem; color: #737373; line-height: 1.8; background: #fdfdfc;">
+        <p style="font-weight: 600; color: #1c1c1c; margin-bottom: 1rem;">July Life Coach Ecosystem</p>
+        <div style="margin-bottom: 1rem;">
+            <a href="https://julylifecoach.com/" style="color: #4a4a4a; text-decoration: none; margin: 0 0.5rem;">Main Site</a> ·
+            <a href="https://services.julylifecoach.com/" style="color: #4a4a4a; text-decoration: none; margin: 0 0.5rem;">Services</a> ·
+            <a href="https://resources.julylifecoach.com/" style="color: #4a4a4a; text-decoration: none; margin: 0 0.5rem;">Resources</a> ·
+            <a href="https://tools.julylifecoach.com/" style="color: #4a4a4a; text-decoration: none; margin: 0 0.5rem;">Tools</a> ·
+            <a href="https://shop.julylifecoach.com/" style="color: #4a4a4a; text-decoration: none; margin: 0 0.5rem;">Shop</a><br>
+            <a href="https://practice.julylifecoach.com/" style="color: #4a4a4a; text-decoration: none; margin: 0 0.5rem;">Practice App</a> ·
+            <a href="https://french.julylifecoach.com/" style="color: #4a4a4a; text-decoration: none; margin: 0 0.5rem;">French App</a>
+        </div>
+        <div style="margin-bottom: 1.5rem; font-size: 0.85rem;">
+            <a href="https://tools.julylifecoach.com/privacy.html" style="color: #737373; text-decoration: none; margin: 0 0.5rem;">Privacy Policy</a> ·
+            <a href="https://tools.julylifecoach.com/terms.html" style="color: #737373; text-decoration: none; margin: 0 0.5rem;">Terms of Service</a> ·
+            <a href="mailto:billy@julylifecoach.com" style="color: #737373; text-decoration: none; margin: 0 0.5rem;">Contact</a>
+        </div>
+        <div style="margin-bottom: 1.5rem; display: flex; justify-content: center; gap: 1rem;">
+            <a href="https://www.youtube.com/@julylifecoach" target="_blank" rel="noopener" aria-label="YouTube" style="color: #737373;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31.5 31.5 0 0 0 0 12a31.5 31.5 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31.5 31.5 0 0 0 24 12a31.5 31.5 0 0 0-.5-5.8zM9.5 15.6V8.4l6.3 3.6-6.3 3.6z" />
+                </svg>
+            </a>
+            <a href="https://www.instagram.com/july_lifecoach" target="_blank" rel="noopener" aria-label="Instagram" style="color: #737373;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2.2c3.2 0 3.6 0 4.9.1 1.2.1 1.8.2 2.2.4.6.2 1 .5 1.4.9.4.4.7.8.9 1.4.2.4.4 1 .4 2.2.1 1.3.1 1.6.1 4.8s0 3.6-.1 4.9c-.1 1.2-.2 1.8-.4 2.2-.2.6-.5 1-.9 1.4-.4.4-.8.7-1.4.9-.4.2-1 .4-2.2.4-1.3.1-1.6.1-4.9.1s-3.6 0-4.9-.1c-1.2-.1-1.8-.2-2.2-.4a3.9 3.9 0 0 1-1.4-.9 3.9 3.9 0 0 1-.9-1.4c-.2-.4-.4-1-.4-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.9c.1-1.2.2-1.8.4-2.2.2-.6.5-1 .9-1.4.4-.4.8-.7 1.4-.9.4-.2 1-.4 2.2-.4C8.4 2.2 8.8 2.2 12 2.2zm0-2.2C8.7 0 8.3 0 7 .1 5.7.1 4.8.3 4 .6a5.9 5.9 0 0 0-2.1 1.3A5.9 5.9 0 0 0 .6 4C.3 4.8.1 5.7.1 7 0 8.3 0 8.7 0 12s0 3.7.1 5c.1 1.3.2 2.2.5 3a5.9 5.9 0 0 0 1.3 2.1 5.9 5.9 0 0 0 2.1 1.3c.8.3 1.7.5 3 .5 1.3.1 1.7.1 5 .1s3.7 0 5-.1c1.3-.1 2.2-.2 3-.5a5.9 5.9 0 0 0 2.1-1.3 5.9 5.9 0 0 0 1.3-2.1c.3-.8.5-1.7.5-3 .1-1.3.1-1.7.1-5s0-3.7-.1-5c-.1-1.3-.2-2.2-.5-3a5.9 5.9 0 0 0-1.3-2.1A5.9 5.9 0 0 0 20 .6c-.8-.3-1.7-.5-3-.5C15.7 0 15.3 0 12 0zm0 5.8a6.2 6.2 0 1 0 0 12.4 6.2 6.2 0 0 0 0-12.4zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.4-11.8a1.4 1.4 0 1 0 0 2.9 1.4 1.4 0 0 0 0-2.9z" />
+                </svg>
+            </a>
+            <a href="https://julylifecoach.substack.com/" target="_blank" rel="noopener" aria-label="Substack" style="color: #737373;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M22.5 0h-21v4.2h21V0zm0 6.3h-21V24l10.5-6 10.5 6V6.3zm0-3.15h-21v2.1h21v-2.1z" />
+                </svg>
+            </a>
+        </div>
+        <p>© 2026 July Life Coach. All rights reserved.</p>
+    </footer>
+</body>
+
+</html>

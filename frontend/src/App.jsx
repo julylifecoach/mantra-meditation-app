@@ -21,6 +21,7 @@ import SelfCoachingWiki from './pages/SelfCoachingWiki';
 import BizCoachHome from './pages/BizCoachHome';
 import ProgramPage from './pages/ProgramPage';
 import ProgramAdmin from './pages/ProgramAdmin';
+import QuizAnalytics from './pages/QuizAnalytics';
 import SessionView from './pages/SessionView';
 import ConsentModal from './components/ConsentModal';
 import FeedbackModal from './components/FeedbackModal';
@@ -393,6 +394,7 @@ function App() {
               <Route path="/108-challenge" element={<AdvancedPractice108 userProfile={userProfile} />} />
               {isAdmin && <Route path="/admin" element={<AdminPanel />} />}
               {isAdmin && <Route path="/admin/programs" element={<ProgramAdmin />} />}
+              {isAdmin && <Route path="/admin/quiz-analytics" element={<QuizAnalytics />} />}
             </Routes>
           ) : (
             <div style={{ textAlign: 'center', marginTop: '6rem', animation: 'fadeIn 1s ease-out' }}>
