@@ -20,6 +20,7 @@ import AdvancedPractice108 from './pages/AdvancedPractice108';
 import SelfCoachingWiki from './pages/SelfCoachingWiki';
 import BizCoachHome from './pages/BizCoachHome';
 import ProgramPage from './pages/ProgramPage';
+import GuidedPractice from './pages/GuidedPractice';
 import ProgramAdmin from './pages/ProgramAdmin';
 import QuizAnalytics from './pages/QuizAnalytics';
 import SessionView from './pages/SessionView';
@@ -33,9 +34,9 @@ function Navigation({ userProfile }) {
   const navItems = [
     { path: '/', label: 'Mantra', icon: <Compass size={20} /> },
     { path: '/meditate', label: 'Practice', icon: <Check size={20} /> },
+    { path: '/100-days', label: '100 Days', icon: <BookOpen size={20} /> },
     { path: '/track', label: 'Track', icon: <Calendar size={20} /> },
     ...(hasClientAccess ? [{ path: '/hub', label: 'Hub', icon: <Users size={20} /> }] : []),
-    { path: 'https://resources.julylifecoach.com/buddhist-guide/', label: 'Learn', icon: <BookOpen size={20} />, external: true },
   ];
 
   return (
@@ -392,6 +393,7 @@ function App() {
               <Route path="/hub" element={<UserHub userProfile={userProfile} />} />
               <Route path="/hub/session/:id" element={<SessionView userProfile={userProfile} />} />
               <Route path="/108-challenge" element={<AdvancedPractice108 userProfile={userProfile} />} />
+              <Route path="/100-days" element={<GuidedPractice userProfile={userProfile} />} />
               {isAdmin && <Route path="/admin" element={<AdminPanel />} />}
               {isAdmin && <Route path="/admin/programs" element={<ProgramAdmin />} />}
               {isAdmin && <Route path="/admin/quiz-analytics" element={<QuizAnalytics />} />}
