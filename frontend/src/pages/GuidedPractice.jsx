@@ -74,6 +74,37 @@ function GuidedPractice({ userProfile }) {
   const todayKey = dateKey(today);
   const isTodayChecked = !!checkins[todayKey];
 
+  // Streak calculations
+  const calcStreaks = () => {
+    if (!startDate) return { current: 0, longest: 0 };
+    // Current streak: count consecutive days backwards from today (or yesterday if today not checked)
+    let current = 0;
+    let checkDate = new Date(today);
+    if (!checkins[dateKey(checkDate)]) {
+      // If today isn't checked yet, start counting from yesterday
+      checkDate.setDate(checkDate.getDate() - 1);
+    }
+    while (checkins[dateKey(checkDate)]) {
+      current++;
+      checkDate.setDate(checkDate.getDate() - 1);
+    }
+    // Longest streak: scan all days from start
+    let longest = 0;
+    let run = 0;
+    let d = new Date(startDate);
+    while (d <= today) {
+      if (checkins[dateKey(d)]) {
+        run++;
+        if (run > longest) longest = run;
+      } else {
+        run = 0;
+      }
+      d.setDate(d.getDate() + 1);
+    }
+    return { current, longest };
+  };
+  const streaks = calcStreaks();
+
   // Toggle today's check-in
   const toggleToday = () => {
     setCheckins(prev => ({
@@ -188,6 +219,56 @@ function GuidedPractice({ userProfile }) {
           <span>{progress}%</span>
         </div>
       </div>
+
+      {/* ── Streak Counter ── */}
+      {!isComplete && streaks.current > 0 && (
+        <div style={{
+          display: 'flex', justifyContent: 'center', gap: '2rem',
+          marginBottom: '1.5rem', animation: 'fadeIn 0.4s ease-out',
+        }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{
+              fontSize: '1.8rem', fontWeight: 700,
+              background: 'linear-gradient(135deg, #f97316, #ef4444)',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+              lineHeight: 1,
+            }}>
+              🔥 {streaks.current}
+            </div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', marginTop: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Current Streak
+            </div>
+          </div>
+          {streaks.longest > streaks.current && (
+            <div style={{ textAlign: 'center' }}>
+              <div style={{
+                fontSize: '1.8rem', fontWeight: 700,
+                color: 'var(--text-secondary)', lineHeight: 1,
+              }}>
+                ⭐ {streaks.longest}
+              </div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', marginTop: '0.25rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Best Streak
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+      {isComplete && (
+        <div style={{
+          textAlign: 'center', marginBottom: '1.5rem',
+          padding: '1rem', background: 'rgba(251,191,36,0.1)',
+          borderRadius: 12, border: '1px solid rgba(251,191,36,0.2)',
+        }}>
+          <div style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>🏆</div>
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: 600 }}>
+            Longest streak: {streaks.longest} days
+          </div>
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+            {totalCheckins} of 100 days practiced
+          </div>
+        </div>
+      )}
 
       {/* ── Today's Check-In ── */}
       {!isComplete && (
