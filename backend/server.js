@@ -14,6 +14,7 @@ const redditRoutes = require('./routes/reddit');
 const youtubeRoutes = require('./routes/youtube');
 const programRoutes = require('./routes/programs');
 const plannerRoutes = require('./routes/planner');
+const libraryRoutes = require('./routes/library');
 const quizResultsRoutes = require('./routes/quiz-results');
 
 const app = express();
@@ -63,6 +64,7 @@ app.use(cors({
 
 // Stripe webhook needs raw body — must be before express.json()
 app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
+app.use('/api/library/webhook', express.raw({ type: 'application/json' }));
 
 app.use(express.json());
 
@@ -79,6 +81,7 @@ app.use('/api/youtube', apiLimiter, youtubeRoutes);
 app.use('/api/programs', apiLimiter, programRoutes);
 app.use('/api/planner-tasks', apiLimiter, plannerRoutes);
 app.use('/api/quiz-results', apiLimiter, quizResultsRoutes);
+app.use('/api/library', libraryRoutes);
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'Practice Backend is running!' });
