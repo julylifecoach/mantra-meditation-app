@@ -289,5 +289,80 @@ router.post('/quiz-report', async (req, res) => {
     }
 });
 
+
+// POST /api/resilience/reaction-mirror-report
+// Handle Reaction Mirror email gate — subscribe to Kit + add to sequence
+router.post('/reaction-mirror-report', async (req, res) => {
+    try {
+        const { email, results } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ error: 'Email required' });
+        }
+
+        // Respond immediately
+        res.status(200).json({ message: 'Subscribed successfully' });
+
+        // Background: Kit subscribe + tag + sequence (fire-and-forget)
+        (async () => {
+            if (!process.env.KIT_API_KEY) {
+                console.error('KIT_API_KEY not set — skipping Kit integration');
+                return;
+            }
+
+            try {
+                const headers = {
+                    'X-Kit-Api-Key': process.env.KIT_API_KEY,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                };
+
+                // 1. Create/update subscriber
+                const subRes = await fetch('https://api.kit.com/v4/subscribers', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        email_address: email,
+                        state: 'active',
+                        fields: results?.dominant ? {
+                            'reaction_pattern': results.dominant.name || '',
+                        } : {}
+                    })
+                });
+                const subData = await subRes.json();
+                const subscriberId = subData?.subscriber?.id;
+
+                if (!subscriberId) {
+                    console.error('Kit: failed to get subscriber ID for', email);
+                    return;
+                }
+
+                // 2. Tag with reaction-mirror-lead
+                const tagId = process.env.KIT_TAG_REACTION_MIRROR || '17676211'; // fallback to ego-quiz tag
+                await fetch(`https://api.kit.com/v4/tags/${tagId}/subscribers`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ id: subscriberId })
+                });
+
+                // 3. Add to Ego/Reflection Track sequence
+                const sequenceId = '2722214';
+                await fetch(`https://api.kit.com/v4/sequences/${sequenceId}/subscribers`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ id: subscriberId })
+                });
+
+                console.log(`Kit: subscribed ${email} to reaction-mirror sequence (pattern: ${results?.dominant?.name || 'low-ego'})`);
+            } catch (kitErr) {
+                console.error('Kit integration error:', kitErr.message);
+            }
+        })();
+    } catch (error) {
+        console.error('Error handling reaction-mirror-report:', error);
+        res.status(500).json({ error: 'Failed to process subscription' });
+    }
+});
+
 module.exports = router;
 
