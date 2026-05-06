@@ -361,23 +361,20 @@ router.post('/reaction-mirror-report', async (req, res) => {
             // 4. Reddit Conversions API — fire Lead event
             if (process.env.REDDIT_CAPI_TOKEN) {
                 try {
-                    const capiRes = await fetch('https://ads-api.reddit.com/api/v2/conversions/events/t2_swg14lcv', {
+                    const capiRes = await fetch('https://ads-api.reddit.com/api/v3/pixels/t2_swg14lcv/conversion_events', {
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${process.env.REDDIT_CAPI_TOKEN}`,
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
-                            test_mode: false,
-                            events: [{
-                                event_at: new Date().toISOString(),
-                                event_type: { tracking_type: 'Lead' },
-                                user: { email: email },
-                                event_metadata: {
-                                    item_count: 1,
-                                    products: [{ name: 'reaction_mirror_lead' }],
-                                },
-                            }],
+                            data: {
+                                events: [{
+                                    event_at: Date.now(),
+                                    action_source: 'WEB',
+                                    type: { tracking_type: 'Lead' },
+                                }],
+                            },
                         }),
                     });
                     console.log(`Reddit CAPI: Lead event for ${email} — ${capiRes.status}`);
