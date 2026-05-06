@@ -25,6 +25,7 @@ model User {
   accessContentCreator Boolean           @default(false)
   accessClientPortal   Boolean           @default(false)
   accessBizCoach       Boolean           @default(false)
+  accessPracticeKit    Boolean           @default(false)
 
   // Client Portal Content
   primaryNotes         String?
@@ -36,6 +37,7 @@ model User {
   coachingSessions     CoachingSession[]
   enrollments          Enrollment[]
   plannerTasks         PlannerTask[]
+  kitProgress          KitProgress[]
 
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
@@ -148,4 +150,17 @@ model QuizResult {
 
   @@index([quizName])
   @@index([createdAt])
+}
+
+model KitProgress {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  toolKey   String   // 'heart-opening-108', 'listening-lens', 'side-effect-quests-v2', 'sa-practice-kit-workbook'
+  data      Json     // the full localStorage JSON blob for that tool
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@unique([userId, toolKey])
+  @@index([userId])
 }

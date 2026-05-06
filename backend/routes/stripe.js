@@ -210,7 +210,66 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
                     break;
                 }
 
-                // 2. Existing logic for Tools/Practice App subscriptions
+                // 2. Check if this is a Practice Kit purchase (payment link)
+                if (!session.metadata?.type && session.payment_link) {
+                    try {
+                        const lineItems = await getStripe().checkout.sessions.listLineItems(session.id);
+                        const KIT_PRODUCT_IDS = [
+                            'prod_UNGg0HGN9rPJ7u', // July Life Coach Practice Kit ($37)
+                            'prod_UD6piLkQx0HVAA', // Action & Alignment Bundle ($37)
+                        ];
+                        const isKitPurchase = lineItems.data.some(
+                            item => KIT_PRODUCT_IDS.includes(item.price.product)
+                        );
+
+                        if (isKitPurchase) {
+                            const email = session.customer_details?.email || session.customer_email;
+                            if (email) {
+                                // Upsert user with Practice Kit access
+                                await prisma.user.upsert({
+                                    where: { email },
+                                    update: { accessPracticeKit: true },
+                                    create: {
+                                        email,
+                                        displayName: email.split('@')[0],
+                                        accessPracticeKit: true,
+                                    },
+                                });
+
+                                // Send welcome email with account setup link
+                                const nodemailer = require('nodemailer');
+                                const transporter = nodemailer.createTransport({
+                                    service: 'gmail',
+                                    auth: {
+                                        user: process.env.SMTP_USER,
+                                        pass: process.env.SMTP_PASS,
+                                    },
+                                });
+
+                                await transporter.sendMail({
+                                    from: 'billy@julylifecoach.com',
+                                    to: email,
+                                    subject: 'Your Practice Kit — Save Your Progress',
+                                    html: `
+                                        <h2>Welcome to the Practice Kit!</h2>
+                                        <p>Your tools are ready. You can start using them right away — all your progress saves automatically in your browser.</p>
+                                        <p><strong>Want to save your progress across devices?</strong> Create a free account at <a href="https://practice.julylifecoach.com">practice.julylifecoach.com</a> using this email (<strong>${email}</strong>). Your Practice Kit access is already activated.</p>
+                                        <p>This is completely optional — the tools work without an account. But if you ever clear your browser data or want to continue on another device, your progress will be there.</p>
+                                        <br/>
+                                        <p>— Billy</p>
+                                    `,
+                                });
+
+                                console.log('Practice Kit purchase provisioned for:', email);
+                            }
+                            break;
+                        }
+                    } catch (err) {
+                        console.error('Error processing payment link purchase:', err);
+                    }
+                }
+
+                // 3. Existing logic for Tools/Practice App subscriptions
                 if (session.subscription) {
                     const subscription = await getStripe().subscriptions.retrieve(session.subscription);
                     const customerId = session.customer;
