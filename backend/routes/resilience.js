@@ -361,6 +361,7 @@ router.post('/reaction-mirror-report', async (req, res) => {
             // 4. Reddit Conversions API — fire Lead event
             if (process.env.REDDIT_CAPI_TOKEN) {
                 try {
+                    const conversionId = `rm_lead_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
                     const capiRes = await fetch('https://ads-api.reddit.com/api/v3/pixels/t2_swg14lcv/conversion_events', {
                         method: 'POST',
                         headers: {
@@ -373,6 +374,14 @@ router.post('/reaction-mirror-report', async (req, res) => {
                                     event_at: Date.now(),
                                     action_source: 'WEB',
                                     type: { tracking_type: 'Lead' },
+                                    user: {
+                                        email: email,
+                                        ip_address: req.ip || req.headers['x-forwarded-for'] || '',
+                                        user_agent: req.headers['user-agent'] || '',
+                                    },
+                                    metadata: {
+                                        conversion_id: conversionId,
+                                    },
                                 }],
                             },
                         }),
