@@ -13,7 +13,7 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ error: 'quizName, answers, and scores are required' });
         }
 
-        const allowedQuizzes = ['ego_check', 'resilience', 'nlp_submodality'];
+        const allowedQuizzes = ['ego_check', 'resilience', 'nlp_submodality', 'social_anxiety_pattern_v3'];
         if (!allowedQuizzes.includes(quizName)) {
             return res.status(400).json({ error: `Invalid quizName. Must be one of: ${allowedQuizzes.join(', ')}` });
         }
