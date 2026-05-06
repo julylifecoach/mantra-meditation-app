@@ -294,7 +294,7 @@ router.post('/quiz-report', async (req, res) => {
 // Handle Reaction Mirror email gate — subscribe to Kit + add to sequence
 router.post('/reaction-mirror-report', async (req, res) => {
     try {
-        const { email, results } = req.body;
+        const { email, results, rdtConversionId } = req.body;
 
         if (!email) {
             return res.status(400).json({ error: 'Email required' });
@@ -361,7 +361,7 @@ router.post('/reaction-mirror-report', async (req, res) => {
             // 4. Reddit Conversions API — fire Lead event
             if (process.env.REDDIT_CAPI_TOKEN) {
                 try {
-                    const conversionId = `rm_lead_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+                    const conversionId = rdtConversionId || `rm_lead_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
                     const capiRes = await fetch('https://ads-api.reddit.com/api/v3/pixels/t2_swg14lcv/conversion_events', {
                         method: 'POST',
                         headers: {
