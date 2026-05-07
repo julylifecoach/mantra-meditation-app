@@ -249,12 +249,19 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
                                 await transporter.sendMail({
                                     from: 'billy@julylifecoach.com',
                                     to: email,
-                                    subject: 'Your Practice Kit — Save Your Progress',
+                                    subject: 'Your Practice Kit — here are your tools',
                                     html: `
-                                        <h2>Welcome to the Practice Kit!</h2>
-                                        <p>Your tools are ready. You can start using them right away — all your progress saves automatically in your browser.</p>
-                                        <p><strong>Want to save your progress across devices?</strong> Create a free account at <a href="https://practice.julylifecoach.com">practice.julylifecoach.com</a> using this email (<strong>${email}</strong>). Your Practice Kit access is already activated.</p>
-                                        <p>This is completely optional — the tools work without an account. But if you ever clear your browser data or want to continue on another device, your progress will be there.</p>
+                                        <h2>Your purchase is confirmed!</h2>
+                                        <p>Here's everything in your Practice Kit:</p>
+                                        <table cellpadding="8" cellspacing="0" style="margin: 16px 0; font-size: 15px;">
+                                            <tr><td>📓</td><td><a href="https://resources.julylifecoach.com/practice-kit-workbook/">Your Workbook</a> — start here, this is your home base</td></tr>
+                                            <tr><td>🔥</td><td><a href="https://resources.julylifecoach.com/social-anxiety/108-heart-opening/">108 Heart Opening</a> — Week 1 writing practice</td></tr>
+                                            <tr><td>👂</td><td><a href="https://resources.julylifecoach.com/listening-lens/">Listening Lens</a> — Week 2 observation practice</td></tr>
+                                            <tr><td>⚔️</td><td><a href="https://resources.julylifecoach.com/social-anxiety/side-effect-quests/">Side Effect Quests</a> — Weeks 3-4 real-world practice</td></tr>
+                                        </table>
+                                        <p>📊 <strong>Recommended:</strong> <a href="https://resources.julylifecoach.com/social-anxiety/quiz.html">Take the Pattern Quiz</a> (2 min) to unlock personalized coaching inside each tool.</p>
+                                        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+                                        <p><strong>Cloud save (optional):</strong> Create a free account at <a href="https://practice.julylifecoach.com">practice.julylifecoach.com</a> using this email (<strong>${email}</strong>) to sync your progress across devices. Your access is already activated.</p>
                                         <br/>
                                         <p>— Billy</p>
                                     `,
