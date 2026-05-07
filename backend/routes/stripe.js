@@ -262,6 +262,52 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 
                                 console.log('Practice Kit purchase provisioned for:', email);
 
+                                // Tag in Kit (ConvertKit) + add to onboarding sequence
+                                if (process.env.KIT_API_KEY) {
+                                    (async () => {
+                                        try {
+                                            const kitHeaders = {
+                                                'X-Kit-Api-Key': process.env.KIT_API_KEY,
+                                                'Content-Type': 'application/json',
+                                                'Accept': 'application/json',
+                                            };
+
+                                            // 1. Create/update subscriber
+                                            const subRes = await fetch('https://api.kit.com/v4/subscribers', {
+                                                method: 'POST',
+                                                headers: kitHeaders,
+                                                body: JSON.stringify({ email_address: email, state: 'active' }),
+                                            });
+                                            const subData = await subRes.json();
+                                            const subscriberId = subData?.subscriber?.id;
+
+                                            if (subscriberId) {
+                                                // 2. Tag with sa-kit-purchased
+                                                const tagId = '19114983';
+                                                await fetch(`https://api.kit.com/v4/tags/${tagId}/subscribers`, {
+                                                    method: 'POST',
+                                                    headers: kitHeaders,
+                                                    body: JSON.stringify({ id: subscriberId }),
+                                                });
+
+                                                // 3. Add to SA Practice Onboarding sequence
+                                                const seqId = '2732148';
+                                                await fetch(`https://api.kit.com/v4/sequences/${seqId}/subscribers`, {
+                                                    method: 'POST',
+                                                    headers: kitHeaders,
+                                                    body: JSON.stringify({ id: subscriberId }),
+                                                });
+
+                                                console.log(`Kit: tagged ${email} with sa-kit-purchased + added to onboarding sequence`);
+                                            } else {
+                                                console.error('Kit: failed to get subscriber ID for', email);
+                                            }
+                                        } catch (kitErr) {
+                                            console.error('Kit integration error:', kitErr.message);
+                                        }
+                                    })();
+                                }
+
                                 // Reddit CAPI — fire Purchase event (server-side attribution)
                                 if (process.env.REDDIT_CAPI_TOKEN) {
                                     try {
