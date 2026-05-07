@@ -261,6 +261,41 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
                                 });
 
                                 console.log('Practice Kit purchase provisioned for:', email);
+
+                                // Reddit CAPI — fire Purchase event (server-side attribution)
+                                if (process.env.REDDIT_CAPI_TOKEN) {
+                                    try {
+                                        const conversionId = `kit_purchase_${session.id}`;
+                                        const capiRes = await fetch('https://ads-api.reddit.com/api/v3/pixels/t2_swg14lcv/conversion_events', {
+                                            method: 'POST',
+                                            headers: {
+                                                'Authorization': `Bearer ${process.env.REDDIT_CAPI_TOKEN}`,
+                                                'Content-Type': 'application/json',
+                                            },
+                                            body: JSON.stringify({
+                                                data: {
+                                                    events: [{
+                                                        event_at: Date.now(),
+                                                        action_source: 'WEB',
+                                                        type: { tracking_type: 'Purchase' },
+                                                        user: {
+                                                            email: email,
+                                                        },
+                                                        metadata: {
+                                                            conversion_id: conversionId,
+                                                            currency: 'USD',
+                                                            value: 37,
+                                                            item_count: 1,
+                                                        },
+                                                    }],
+                                                },
+                                            }),
+                                        });
+                                        console.log(`Reddit CAPI: Purchase event for ${email} — ${capiRes.status}`);
+                                    } catch (rdtErr) {
+                                        console.error('Reddit CAPI Purchase error:', rdtErr.message);
+                                    }
+                                }
                             }
                             break;
                         }
