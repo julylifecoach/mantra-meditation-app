@@ -279,11 +279,17 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
                                                 'Accept': 'application/json',
                                             };
 
-                                            // 1. Create/update subscriber
+                                            // 1. Create/update subscriber (include first name from Stripe billing info)
+                                            const customerName = session.customer_details?.name || '';
+                                            const firstName = customerName.split(' ')[0] || '';
                                             const subRes = await fetch('https://api.kit.com/v4/subscribers', {
                                                 method: 'POST',
                                                 headers: kitHeaders,
-                                                body: JSON.stringify({ email_address: email, state: 'active' }),
+                                                body: JSON.stringify({
+                                                    email_address: email,
+                                                    first_name: firstName || undefined,
+                                                    state: 'active',
+                                                }),
                                             });
                                             const subData = await subRes.json();
                                             const subscriberId = subData?.subscriber?.id;
