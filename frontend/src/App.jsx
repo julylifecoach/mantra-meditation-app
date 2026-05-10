@@ -128,7 +128,6 @@ function App() {
           console.warn('Stored token is invalid, clearing session.');
           localStorage.removeItem('aura_user');
           localStorage.removeItem('aura_token');
-          localStorage.removeItem('aura_reflections');
           localStorage.removeItem('aura_daily_mantra');
           setIsAuthenticated(false);
           setUserProfile(null);
@@ -203,7 +202,6 @@ function App() {
   const handleLogout = () => {
     localStorage.removeItem('aura_user');
     localStorage.removeItem('aura_token');
-    localStorage.removeItem('aura_reflections');
     localStorage.removeItem('aura_daily_mantra');
     setIsAuthenticated(false);
     setUserProfile(null);

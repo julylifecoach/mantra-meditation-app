@@ -11,6 +11,7 @@ export default function Dashboard() {
     const [isPublic, setIsPublic] = useState(false);
     const [history, setHistory] = useState([]);
     const [isSaving, setIsSaving] = useState(false);
+    const [saveWarning, setSaveWarning] = useState('');
 
     useEffect(() => {
         // Attempt to load from localStorage first for hybrid prototype
@@ -28,6 +29,7 @@ export default function Dashboard() {
         if (!reflection.trim()) return;
 
         setIsSaving(true);
+        setSaveWarning('');
 
         const newEntry = {
             id: Date.now().toString(),
@@ -47,12 +49,11 @@ export default function Dashboard() {
             localStorage.setItem('aura_public', JSON.stringify([newEntry, ...publicFeed]));
         }
 
-        // 3. Attempt backend save gracefully (Will fail silently if DB not connected yet)
+        // 3. Attempt backend save -- warn user if it fails
         try {
-            // Assuming a valid JWT token in localStorage if they signed in
             const token = localStorage.getItem('aura_token');
             if (token) {
-                await fetch('/api/reflections', {
+                const res = await fetch('/api/reflections', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -60,9 +61,12 @@ export default function Dashboard() {
                     },
                     body: JSON.stringify({ content: reflection, isPublic })
                 });
+                if (!res.ok) {
+                    setSaveWarning('Saved locally but could not sync to server. Try logging out and back in.');
+                }
             }
         } catch (e) {
-            console.log('Backend save bypassed for local prototype mode.');
+            setSaveWarning('Saved locally but could not reach server. Your entry is safe on this device.');
         }
 
         setReflection('');
@@ -128,6 +132,12 @@ export default function Dashboard() {
                         {isSaving ? 'Saving...' : 'Save Entry'}
                     </button>
                 </div>
+
+                {saveWarning && (
+                    <p style={{ color: '#f59e0b', fontSize: '0.85rem', marginTop: '0.75rem', padding: '0.5rem 0.75rem', background: 'rgba(245, 158, 11, 0.1)', borderRadius: '8px', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+                        {saveWarning}
+                    </p>
+                )}
             </div>
 
             {/* History */}
