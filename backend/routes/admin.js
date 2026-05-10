@@ -38,6 +38,8 @@ router.get('/users', requireAdmin, async (req, res) => {
                 accessContentCreator: true,
                 accessClientPortal: true,
                 accessBizCoach: true,
+                primaryNotes: true,
+                playlistUrl: true,
                 createdAt: true,
                 _count: { select: { reflections: true, coachingSessions: true } }
             },
