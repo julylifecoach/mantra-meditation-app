@@ -7,13 +7,14 @@ const { authenticate } = require('../middleware/auth');
 // Anonymous — stores quiz completion for statistical analysis
 router.post('/', async (req, res) => {
     try {
-        const { quizName, answers, scores, verdict, metadata } = req.body;
+        const { quizName, answers, scores, factors, verdict, metadata } = req.body;
+        const resolvedScores = scores || factors;
 
-        if (!quizName || !answers || !scores) {
-            return res.status(400).json({ error: 'quizName, answers, and scores are required' });
+        if (!quizName || !answers || !resolvedScores) {
+            return res.status(400).json({ error: 'quizName, answers, and scores (or factors) are required' });
         }
 
-        const allowedQuizzes = ['ego_check', 'resilience', 'nlp_submodality', 'social_anxiety_pattern_v3'];
+        const allowedQuizzes = ['ego_check', 'resilience', 'nlp_submodality', 'social_anxiety_pattern_v3', 'procrastination_type_v1', 'perception_map_v1'];
         if (!allowedQuizzes.includes(quizName)) {
             return res.status(400).json({ error: `Invalid quizName. Must be one of: ${allowedQuizzes.join(', ')}` });
         }
@@ -22,7 +23,7 @@ router.post('/', async (req, res) => {
             data: {
                 quizName,
                 answers,
-                scores,
+                scores: resolvedScores,
                 verdict: verdict || null,
                 metadata: metadata || null,
             }
