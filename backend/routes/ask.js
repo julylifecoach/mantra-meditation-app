@@ -38,7 +38,7 @@ router.post('/', async (req, res) => {
             },
         });
 
-        // Subscribe to Kit if opted in
+        // Subscribe to Kit if opted in (fire-and-forget)
         if (subscribeToKit) {
             try {
                 const kitSecret = process.env.KIT_API_SECRET;
@@ -59,7 +59,7 @@ router.post('/', async (req, res) => {
             }
         }
 
-        // Notify Billy via email
+        // Notify Billy via email (fire-and-forget)
         try {
             const transporter = nodemailer.createTransport({
                 service: 'gmail',
@@ -72,48 +72,66 @@ router.post('/', async (req, res) => {
             await transporter.sendMail({
                 from: `"Ask Billy" <${process.env.SMTP_USER}>`,
                 to: 'billy@julylifecoach.com',
-                subject: `New Question from ${name}`,
+                replyTo: email,
+                subject: `🙋 New AMA Question from ${name}`,
                 html: `
-                    <h2>New Ask Billy Question</h2>
+                    <h2>New Question on Ask Billy</h2>
                     <p><strong>From:</strong> ${name} (${email})</p>
                     ${context ? `<p><strong>Context:</strong> ${context}</p>` : ''}
                     <hr />
                     <h3>Question:</h3>
-                    <p>${question.replace(/\n/g, '<br>')}</p>
+                    <p style="font-size: 16px; line-height: 1.6;">${question.replace(/\n/g, '<br>')}</p>
                     <hr />
-                    <p style="color: #999;">Answer at: <a href="https://resources.julylifecoach.com/ask/admin.html">Admin Panel</a></p>
+                    <p><a href="https://resources.julylifecoach.com/ask/admin.html?id=${entry.id}">Answer this question →</a></p>
+                    ${subscribeToKit ? '<p style="color: #888;">✅ They opted in to the newsletter</p>' : ''}
                 `,
             });
         } catch (mailErr) {
             console.error('Ask Billy notification email error (non-fatal):', mailErr.message);
         }
 
-        res.status(201).json({ success: true, id: entry.id });
+        res.status(201).json({
+            success: true,
+            message: 'Your question has been submitted! Billy will respond within 48 hours.',
+            id: entry.id,
+        });
     } catch (error) {
         console.error('Ask Billy submit error:', error);
         res.status(500).json({ error: 'Failed to submit question' });
     }
 });
 
-// GET / — List published Q&As (public)
+// GET / — List published Q&As (public, paginated)
 router.get('/', async (req, res) => {
     try {
-        const entries = await prisma.askQuestion.findMany({
-            where: { status: 'published' },
-            orderBy: { answeredAt: 'desc' },
-            select: {
-                id: true,
-                name: true,
-                question: true,
-                answer: true,
-                answeredAt: true,
-                createdAt: true,
-            },
-        });
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const skip = (page - 1) * limit;
+
+        const [entries, total] = await Promise.all([
+            prisma.askQuestion.findMany({
+                where: { status: 'published' },
+                orderBy: { answeredAt: 'desc' },
+                select: {
+                    id: true,
+                    name: true,
+                    question: true,
+                    context: true,
+                    answer: true,
+                    answeredAt: true,
+                    createdAt: true,
+                },
+                skip,
+                take: limit,
+            }),
+            prisma.askQuestion.count({ where: { status: 'published' } }),
+        ]);
 
         res.json({
             entries,
-            total: entries.length,
+            total,
+            page,
+            pages: Math.ceil(total / limit),
         });
     } catch (error) {
         console.error('Ask Billy list error:', error);
