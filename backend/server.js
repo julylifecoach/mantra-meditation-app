@@ -17,6 +17,7 @@ const plannerRoutes = require('./routes/planner');
 const libraryRoutes = require('./routes/library');
 const quizResultsRoutes = require('./routes/quiz-results');
 const kitProgressRoutes = require('./routes/kit-progress');
+const askRoutes = require('./routes/ask');
 
 const app = express();
 app.set('trust proxy', 1); // Trust first proxy (Nginx)
@@ -47,6 +48,7 @@ const allowedOrigins = [
     'https://julylifecoach.com',
     'https://french.julylifecoach.com',
     'https://resources.julylifecoach.com',
+    'https://shop.julylifecoach.com',
     'http://localhost:5173',
     'http://localhost:5174',
 ];
@@ -83,6 +85,7 @@ app.use('/api/programs', apiLimiter, programRoutes);
 app.use('/api/planner-tasks', apiLimiter, plannerRoutes);
 app.use('/api/quiz-results', apiLimiter, quizResultsRoutes);
 app.use('/api/kit-progress', apiLimiter, kitProgressRoutes);
+app.use('/api/ask', apiLimiter, askRoutes);
 app.use('/api/library', libraryRoutes);
 
 app.get('/api/health', (req, res) => {
