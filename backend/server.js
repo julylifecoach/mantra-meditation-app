@@ -18,6 +18,7 @@ const libraryRoutes = require('./routes/library');
 const quizResultsRoutes = require('./routes/quiz-results');
 const kitProgressRoutes = require('./routes/kit-progress');
 const askRoutes = require('./routes/ask');
+const kitTagRoutes = require('./routes/kit-tag');
 
 const app = express();
 app.set('trust proxy', 1); // Trust first proxy (Nginx)
@@ -86,6 +87,7 @@ app.use('/api/planner-tasks', apiLimiter, plannerRoutes);
 app.use('/api/quiz-results', apiLimiter, quizResultsRoutes);
 app.use('/api/kit-progress', apiLimiter, kitProgressRoutes);
 app.use('/api/ask', apiLimiter, askRoutes);
+app.use('/api/kit-tag', apiLimiter, kitTagRoutes);
 app.use('/api/library', libraryRoutes);
 
 app.get('/api/health', (req, res) => {
