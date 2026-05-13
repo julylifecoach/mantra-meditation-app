@@ -5,6 +5,10 @@ const QUIZZES = [
     { key: 'nlp_submodality', label: 'NLP Submodality' },
     { key: 'ego_check', label: 'Ego Check' },
     { key: 'resilience', label: 'Resilience' },
+    { key: 'social_anxiety_pattern_v3', label: 'Social Anxiety' },
+    { key: 'procrastination_type_v1', label: 'Procrastination' },
+    { key: 'perception_map_v1', label: 'Perception Map' },
+    { key: 'reaction_mirror', label: 'Reaction Mirror' },
 ];
 
 export default function QuizAnalytics() {
