@@ -363,6 +363,134 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
                     }
                 }
 
+                // 2b. Check if this is a Reddit Course purchase (payment link)
+                if (!session.metadata?.type && session.payment_link) {
+                    try {
+                        const lineItems = await getStripe().checkout.sessions.listLineItems(session.id);
+                        const REDDIT_COURSE_PRODUCT_IDS = [
+                            'prod_UKxWhVWfO4fc1o', // Coach + Reddit Course ($9.99)
+                        ];
+                        const isRedditCourse = lineItems.data.some(
+                            item => REDDIT_COURSE_PRODUCT_IDS.includes(item.price.product)
+                        );
+
+                        if (isRedditCourse) {
+                            const email = session.customer_details?.email || session.customer_email;
+                            if (email) {
+                                // Send welcome email with course link
+                                const nodemailer = require('nodemailer');
+                                const transporter = nodemailer.createTransport({
+                                    service: 'gmail',
+                                    auth: {
+                                        user: process.env.SMTP_USER,
+                                        pass: process.env.SMTP_PASS,
+                                    },
+                                });
+
+                                await transporter.sendMail({
+                                    from: 'billy@julylifecoach.com',
+                                    to: email,
+                                    subject: 'Your Coach + Reddit Course — here\'s your access',
+                                    html: `
+                                        <h2>You're in!</h2>
+                                        <p>Your Coach + Reddit course is ready. Here's your direct link:</p>
+                                        <p style="margin: 20px 0;"><a href="https://learn.julylifecoach.com/reddit?key=reddit-course-2026" style="background: #c75d2c; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">Go to Your Course →</a></p>
+                                        <p style="font-size: 14px; color: #666;">Bookmark this link. If you clear your browser, revisit it to restore access.</p>
+                                        <table cellpadding="6" cellspacing="0" style="margin: 16px 0; font-size: 14px; color: #333;">
+                                            <tr><td colspan="2" style="font-weight: 600; padding-bottom: 4px;">What's inside (10 modules):</td></tr>
+                                            <tr><td>📋</td><td><strong>Part 1:</strong> Reddit Strategy — fundamentals, subreddit selection, templates, engagement scripts, 90-min weekly system</td></tr>
+                                            <tr><td>🎥</td><td><strong>Part 2 (Bonus):</strong> Content Production — OBS setup, transcription, automation, AI agent pipeline</td></tr>
+                                        </table>
+                                        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+                                        <p style="font-size: 13px; color: #999;">Access key: <code>reddit-course-2026</code> — save this in case you need it on a new device.</p>
+                                        <br/>
+                                        <p>— Billy</p>
+                                    `,
+                                });
+
+                                console.log('Reddit Course purchase — welcome email sent to:', email);
+
+                                // Tag in Kit (ConvertKit)
+                                if (process.env.KIT_API_KEY) {
+                                    (async () => {
+                                        try {
+                                            const kitHeaders = {
+                                                'X-Kit-Api-Key': process.env.KIT_API_KEY,
+                                                'Content-Type': 'application/json',
+                                                'Accept': 'application/json',
+                                            };
+
+                                            const customerName = session.customer_details?.name || '';
+                                            const firstName = customerName.split(' ')[0] || '';
+                                            const subRes = await fetch('https://api.kit.com/v4/subscribers', {
+                                                method: 'POST',
+                                                headers: kitHeaders,
+                                                body: JSON.stringify({
+                                                    email_address: email,
+                                                    first_name: firstName || undefined,
+                                                    state: 'active',
+                                                }),
+                                            });
+                                            const subData = await subRes.json();
+                                            const subscriberId = subData?.subscriber?.id;
+
+                                            if (subscriberId) {
+                                                const tagId = '19567730'; // reddit-course-purchased
+                                                await fetch(`https://api.kit.com/v4/tags/${tagId}/subscribers`, {
+                                                    method: 'POST',
+                                                    headers: kitHeaders,
+                                                    body: JSON.stringify({ id: subscriberId }),
+                                                });
+                                                console.log(`Kit: tagged ${email} with reddit-course-purchased`);
+                                            } else {
+                                                console.error('Kit: failed to get subscriber ID for', email);
+                                            }
+                                        } catch (kitErr) {
+                                            console.error('Kit integration error (reddit course):', kitErr.message);
+                                        }
+                                    })();
+                                }
+
+                                // Reddit CAPI — fire Purchase event
+                                if (process.env.REDDIT_CAPI_TOKEN) {
+                                    try {
+                                        const conversionId = `reddit_course_${session.id}`;
+                                        const capiRes = await fetch('https://ads-api.reddit.com/api/v3/pixels/t2_swg14lcv/conversion_events', {
+                                            method: 'POST',
+                                            headers: {
+                                                'Authorization': `Bearer ${process.env.REDDIT_CAPI_TOKEN}`,
+                                                'Content-Type': 'application/json',
+                                            },
+                                            body: JSON.stringify({
+                                                data: {
+                                                    events: [{
+                                                        event_at: Date.now(),
+                                                        action_source: 'WEB',
+                                                        type: { tracking_type: 'Purchase' },
+                                                        user: { email },
+                                                        metadata: {
+                                                            conversion_id: conversionId,
+                                                            currency: 'USD',
+                                                            value: 9.99,
+                                                            item_count: 1,
+                                                        },
+                                                    }],
+                                                },
+                                            }),
+                                        });
+                                        console.log(`Reddit CAPI: Purchase event for ${email} — ${capiRes.status}`);
+                                    } catch (rdtErr) {
+                                        console.error('Reddit CAPI Purchase error:', rdtErr.message);
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                    } catch (err) {
+                        console.error('Error processing Reddit course purchase:', err);
+                    }
+                }
+
                 // 3. Existing logic for Tools/Practice App subscriptions
                 if (session.subscription) {
                     const subscription = await getStripe().subscriptions.retrieve(session.subscription);
