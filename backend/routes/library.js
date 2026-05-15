@@ -15,9 +15,7 @@ const LIBRARY_PRODUCT_ID = 'prod_ULOcDYnJ07Y9ZH';
 const ACCESS_KEY = 'july-library-2026';
 const LIBRARY_URL = 'https://library.julylifecoach.com';
 
-// Reddit Course product ID in Stripe
-const REDDIT_COURSE_PRODUCT_ID = 'prod_UKxWhVWfO4fc1o';
-const REDDIT_COURSE_URL = 'https://learn.julylifecoach.com/reddit';
+
 
 // Lazy-init Stripe
 let stripe;
@@ -59,17 +57,14 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
         return res.json({ received: true, error: 'no_email' });
     }
 
-    // Identify which product was purchased
-    let purchaseType = null;
+    // Check if this is a Practice Library purchase
+    let isLibrary = false;
     try {
         const lineItems = await getStripe().checkout.sessions.listLineItems(session.id);
-        for (const item of lineItems.data) {
-            if (item.price?.product === LIBRARY_PRODUCT_ID) { purchaseType = 'library'; break; }
-            if (item.price?.product === REDDIT_COURSE_PRODUCT_ID) { purchaseType = 'reddit'; break; }
-        }
+        isLibrary = lineItems.data.some(item => item.price?.product === LIBRARY_PRODUCT_ID);
 
-        if (!purchaseType) {
-            console.log(`[Library Webhook] Checkout ${session.id} is not a recognized product, skipping`);
+        if (!isLibrary) {
+            console.log(`[Library Webhook] Checkout ${session.id} is not a Library purchase, skipping`);
             return res.json({ received: true, skipped: true });
         }
     } catch (err) {
@@ -77,54 +72,6 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
         // Continue anyway — better to send the email than not
     }
 
-    // ── Reddit Course: send course link ──
-    if (purchaseType === 'reddit') {
-        try {
-            const transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    user: process.env.SMTP_USER,
-                    pass: process.env.SMTP_PASS,
-                },
-            });
-
-            await transporter.sendMail({
-                from: '"July Life Coach" <billy@julylifecoach.com>',
-                to: email,
-                subject: 'Your Coach + Reddit Course Access',
-                html: `
-                    <div style="font-family: 'Georgia', serif; max-width: 560px; margin: 0 auto; padding: 40px 20px; color: #1a1a2e;">
-                        <h2 style="font-size: 24px; font-weight: 400; margin-bottom: 8px;">Welcome to Coach + Reddit</h2>
-                        <p style="color: #737373; font-size: 14px; margin-bottom: 32px;">Thank you for your purchase.</p>
-                        
-                        <p style="line-height: 1.7;">Your course is ready. Everything you need to build your coaching practice on Reddit is inside.</p>
-                        
-                        <div style="background: #f8f6f0; border: 1px solid #e8e4dc; border-radius: 12px; padding: 24px; margin: 28px 0; text-align: center;">
-                            <p style="font-size: 13px; color: #737373; margin: 0 0 12px 0; text-transform: uppercase; letter-spacing: 0.08em;">Your Course Link</p>
-                            <a href="${REDDIT_COURSE_URL}" style="display: inline-block; background: #b08d57; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: 600;">Open the Course →</a>
-                        </div>
-                        
-                        <p style="line-height: 1.7; margin-top: 24px;">Bookmark this link — you can return to it anytime:<br/>
-                        <a href="${REDDIT_COURSE_URL}" style="color: #b08d57;">${REDDIT_COURSE_URL}</a></p>
-                        
-                        <p style="margin-top: 32px; line-height: 1.7;">Warmly,<br/>Billy</p>
-                        
-                        <hr style="border: none; border-top: 1px solid #eee; margin: 32px 0;" />
-                        <p style="font-size: 12px; color: #999; text-align: center;">
-                            July Life Coach &middot; <a href="https://julylifecoach.com" style="color: #999;">julylifecoach.com</a><br/>
-                            Questions? Reply to this email.
-                        </p>
-                    </div>
-                `,
-            });
-
-            console.log(`[Reddit Course] Course link sent to ${email}`);
-        } catch (err) {
-            console.error('[Reddit Course] Error sending email:', err.message);
-        }
-
-        return res.json({ received: true, email_sent: true, product: 'reddit_course' });
-    }
 
     // Send the access key email
     try {
