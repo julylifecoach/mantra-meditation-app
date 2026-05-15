@@ -38,6 +38,7 @@ model User {
   enrollments          Enrollment[]
   plannerTasks         PlannerTask[]
   kitProgress          KitProgress[]
+  entitlements         Entitlement[]
 
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
@@ -179,4 +180,20 @@ model AskQuestion {
 
   @@index([status])
   @@index([createdAt])
+}
+
+model Entitlement {
+  id              String    @id @default(uuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  productKey      String    // e.g. "reddit-course", "practice-kit", "action-matrix"
+  source          String    @default("free") // "stripe", "manual", "free"
+  stripeSessionId String?
+  grantedAt       DateTime  @default(now())
+  expiresAt       DateTime? // null = permanent, set for subscriptions
+  active          Boolean   @default(true)
+
+  @@unique([userId, productKey])
+  @@index([userId])
+  @@index([productKey])
 }

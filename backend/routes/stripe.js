@@ -1,6 +1,7 @@
 const express = require('express');
 const prisma = require('../lib/prisma');
 const { authenticate } = require('../middleware/auth');
+const { grantEntitlement, PRODUCT_KEY_MAP } = require('./entitlements');
 
 const router = express.Router();
 
@@ -236,6 +237,14 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
                                     },
                                 });
 
+                                // Create entitlement record
+                                const user = await prisma.user.findUnique({ where: { email } });
+                                if (user) {
+                                    await grantEntitlement(user.id, 'practice-kit', 'stripe', session.id).catch(e => {
+                                        console.error('Entitlement grant error (practice-kit):', e.message);
+                                    });
+                                }
+
                                 // Send welcome email with account setup link
                                 const nodemailer = require('nodemailer');
                                 const transporter = nodemailer.createTransport({
@@ -409,6 +418,19 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
                                 });
 
                                 console.log('Reddit Course purchase — welcome email sent to:', email);
+
+                                // Create entitlement record
+                                const user = await prisma.user.upsert({
+                                    where: { email },
+                                    update: {},
+                                    create: {
+                                        email,
+                                        displayName: email.split('@')[0],
+                                    },
+                                });
+                                await grantEntitlement(user.id, 'reddit-course', 'stripe', session.id).catch(e => {
+                                    console.error('Entitlement grant error (reddit-course):', e.message);
+                                });
 
                                 // Tag in Kit (ConvertKit)
                                 if (process.env.KIT_API_KEY) {

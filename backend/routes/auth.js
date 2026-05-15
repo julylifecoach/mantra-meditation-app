@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const prisma = require('../lib/prisma');
 const { authenticate } = require('../middleware/auth');
+const { grantFreeEntitlements } = require('./entitlements');
 
 const router = express.Router();
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -15,6 +16,18 @@ function createToken(user) {
         process.env.JWT_SECRET,
         { expiresIn: '30d' }
     );
+}
+
+// Helper to set cross-subdomain cookie
+function setCrossDomainCookie(res, token) {
+    res.cookie('july_token', token, {
+        domain: '.julylifecoach.com',
+        path: '/',
+        httpOnly: true,
+        secure: true,
+        sameSite: 'Lax',
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    });
 }
 
 // Helper to strip sensitive fields
@@ -58,6 +71,9 @@ router.post('/google', async (req, res) => {
         }
 
         const sessionToken = createToken(user);
+        setCrossDomainCookie(res, sessionToken);
+        // Grant free entitlements for new users
+        grantFreeEntitlements(user.id).catch(() => {});
         res.json({ token: sessionToken, user: sanitizeUser(user) });
     } catch (error) {
         console.error("Google Auth Error:", error);
@@ -97,6 +113,8 @@ router.post('/register', async (req, res) => {
                     },
                 });
                 const token = createToken(user);
+                setCrossDomainCookie(res, token);
+                grantFreeEntitlements(user.id).catch(() => {});
                 return res.json({ token, user: sanitizeUser(user) });
             }
             return res.status(409).json({ error: 'An account with this email already exists' });
@@ -116,6 +134,8 @@ router.post('/register', async (req, res) => {
         });
 
         const token = createToken(user);
+        setCrossDomainCookie(res, token);
+        grantFreeEntitlements(user.id).catch(() => {});
         res.json({ token, user: sanitizeUser(user) });
     } catch (error) {
         console.error("Register Error:", error);
@@ -143,6 +163,7 @@ router.post('/login', async (req, res) => {
         }
 
         const token = createToken(user);
+        setCrossDomainCookie(res, token);
         res.json({ token, user: sanitizeUser(user) });
     } catch (error) {
         console.error("Login Error:", error);
@@ -174,6 +195,20 @@ router.get('/me', authenticate, async (req, res) => {
                 trialEnd: sub.trialEnd,
             }
             : { status: 'none' };
+
+        // Include active entitlements
+        const entitlements = await prisma.entitlement.findMany({
+            where: {
+                userId: req.userId,
+                active: true,
+                OR: [
+                    { expiresAt: null },
+                    { expiresAt: { gt: new Date() } },
+                ],
+            },
+            select: { productKey: true },
+        });
+        safeUser.entitlements = entitlements.map(e => e.productKey);
 
         res.json({ user: safeUser });
     } catch (error) {

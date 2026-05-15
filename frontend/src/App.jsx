@@ -108,6 +108,22 @@ function App() {
   const [authLoading, setAuthLoading] = useState(false);
   const profileRef = useRef(null);
 
+  // Check for authRedirect from learn portal
+  const getAuthRedirect = () => {
+    const params = new URLSearchParams(window.location.search);
+    const redirect = params.get('authRedirect');
+    if (redirect) {
+      try {
+        const url = new URL(redirect);
+        // Only allow redirects to julylifecoach.com subdomains
+        if (url.hostname.endsWith('.julylifecoach.com') || url.hostname === 'julylifecoach.com') {
+          return redirect;
+        }
+      } catch (e) {}
+    }
+    return null;
+  };
+
   useEffect(() => {
     const savedUser = localStorage.getItem('aura_user');
     const savedToken = localStorage.getItem('aura_token');
@@ -220,6 +236,12 @@ function App() {
         const data = await res.json();
         localStorage.setItem('aura_token', data.token);
         localStorage.setItem('aura_user', JSON.stringify(data.user));
+        // Check for learn portal redirect
+        const redirectUrl = getAuthRedirect();
+        if (redirectUrl) {
+          window.location.href = redirectUrl;
+          return;
+        }
         setIsAuthenticated(true);
         setUserProfile(data.user);
         setNickname(data.user.nickname || '');
@@ -446,6 +468,12 @@ function App() {
                     } else {
                       localStorage.setItem('aura_token', data.token);
                       localStorage.setItem('aura_user', JSON.stringify(data.user));
+                      // Check for learn portal redirect
+                      const redirectUrl = getAuthRedirect();
+                      if (redirectUrl) {
+                        window.location.href = redirectUrl;
+                        return;
+                      }
                       setIsAuthenticated(true);
                       setUserProfile(data.user);
                       setNickname(data.user.nickname || '');

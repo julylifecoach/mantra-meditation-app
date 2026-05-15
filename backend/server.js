@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
+const cookieParser = require('cookie-parser');
 
 const authRoutes = require('./routes/auth');
 const reflectionRoutes = require('./routes/reflections');
@@ -19,6 +20,7 @@ const quizResultsRoutes = require('./routes/quiz-results');
 const kitProgressRoutes = require('./routes/kit-progress');
 const askRoutes = require('./routes/ask');
 const kitTagRoutes = require('./routes/kit-tag');
+const entitlementRoutes = require('./routes/entitlements');
 
 const app = express();
 app.set('trust proxy', 1); // Trust first proxy (Nginx)
@@ -50,6 +52,7 @@ const allowedOrigins = [
     'https://french.julylifecoach.com',
     'https://resources.julylifecoach.com',
     'https://shop.julylifecoach.com',
+    'https://learn.julylifecoach.com',
     'http://localhost:5173',
     'http://localhost:5174',
 ];
@@ -71,6 +74,7 @@ app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
 app.use('/api/library/webhook', express.raw({ type: 'application/json' }));
 
 app.use(express.json());
+app.use(cookieParser());
 
 // Routes
 app.use('/api/auth', authLimiter, authRoutes);
@@ -89,6 +93,7 @@ app.use('/api/kit-progress', apiLimiter, kitProgressRoutes);
 app.use('/api/ask', apiLimiter, askRoutes);
 app.use('/api/kit-tag', apiLimiter, kitTagRoutes);
 app.use('/api/library', libraryRoutes);
+app.use('/api/entitlements', apiLimiter, entitlementRoutes);
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'Practice Backend is running!' });
