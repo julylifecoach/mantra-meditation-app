@@ -10,6 +10,7 @@ const PRODUCT_KEY_MAP = {
     'prod_UKxWhVWfO4fc1o': 'reddit-course',
     'prod_UNGg0HGN9rPJ7u': 'practice-kit',
     'prod_UD6piLkQx0HVAA': 'practice-kit', // Action & Alignment Bundle
+    'prod_UWuSLh5aSbuC1W': 'launch-pad',
 };
 
 // GET /api/entitlements -- returns all active entitlements for the current user

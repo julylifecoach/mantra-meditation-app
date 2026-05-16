@@ -513,6 +513,117 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
                     }
                 }
 
+                // 2c. Check if this is a Launch Pad purchase (payment link)
+                if (!session.metadata?.type && session.payment_link) {
+                    try {
+                        const lineItems = await getStripe().checkout.sessions.listLineItems(session.id);
+                        const LAUNCH_PAD_PRODUCT_IDS = [
+                            'prod_UWuSLh5aSbuC1W', // Launch Pad ($79 / $70)
+                        ];
+                        const isLaunchPad = lineItems.data.some(
+                            item => LAUNCH_PAD_PRODUCT_IDS.includes(item.price.product)
+                        );
+
+                        if (isLaunchPad) {
+                            const email = session.customer_details?.email || session.customer_email;
+                            if (email) {
+                                // Send welcome email with course link
+                                const nodemailer = require('nodemailer');
+                                const transporter = nodemailer.createTransport({
+                                    service: 'gmail',
+                                    auth: {
+                                        user: process.env.SMTP_USER,
+                                        pass: process.env.SMTP_PASS,
+                                    },
+                                });
+
+                                await transporter.sendMail({
+                                    from: 'billy@julylifecoach.com',
+                                    to: email,
+                                    subject: 'Your Launch Pad course is ready',
+                                    html: `
+                                        <h2 style="color: #1B2A4A;">Welcome to Launch Pad</h2>
+                                        <p>Your course is ready. Here's your direct link:</p>
+                                        <p style="margin: 20px 0;"><a href="https://learn.julylifecoach.com/launch-pad?key=launch-pad-2026" style="background: #E87C4F; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">Go to Your Course</a></p>
+                                        <p style="font-size: 14px; color: #666;">Bookmark this link. If you clear your browser, revisit it to restore access.</p>
+                                        <table cellpadding="6" cellspacing="0" style="margin: 16px 0; font-size: 14px; color: #333;">
+                                            <tr><td colspan="2" style="font-weight: 600; padding-bottom: 4px;">What's inside (7 modules):</td></tr>
+                                            <tr><td>&#x2764;</td><td><strong>Heart</strong> -- learn to lead from the heart, not the head</td></tr>
+                                            <tr><td>&#x1F91D;</td><td><strong>Sharing</strong> -- show up authentically with your audience</td></tr>
+                                            <tr><td>&#x1F3AF;</td><td><strong>Path</strong> -- design your coaching offer using the North Star Builder</td></tr>
+                                            <tr><td>&#x1F3A8;</td><td><strong>Three Skill System</strong> -- Micropost, Microdose, Lock In</td></tr>
+                                            <tr><td>&#x1F680;</td><td><strong>Daily Quests</strong> -- build momentum with 5 daily practices</td></tr>
+                                        </table>
+                                        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+                                        <p style="font-size: 13px; color: #999;">Access key: <code>launch-pad-2026</code> -- save this in case you need it on a new device.</p>
+                                        <br/>
+                                        <p>-- Billy</p>
+                                    `,
+                                });
+
+                                console.log('Launch Pad purchase -- welcome email sent to:', email);
+
+                                // Create entitlement record
+                                const user = await prisma.user.upsert({
+                                    where: { email },
+                                    update: {},
+                                    create: {
+                                        email,
+                                        displayName: email.split('@')[0],
+                                    },
+                                });
+                                await grantEntitlement(user.id, 'launch-pad', 'stripe', session.id).catch(e => {
+                                    console.error('Entitlement grant error (launch-pad):', e.message);
+                                });
+
+                                // Tag in Kit (ConvertKit)
+                                if (process.env.KIT_API_KEY) {
+                                    (async () => {
+                                        try {
+                                            const kitHeaders = {
+                                                'X-Kit-Api-Key': process.env.KIT_API_KEY,
+                                                'Content-Type': 'application/json',
+                                                'Accept': 'application/json',
+                                            };
+
+                                            const customerName = session.customer_details?.name || '';
+                                            const firstName = customerName.split(' ')[0] || '';
+                                            const subRes = await fetch('https://api.kit.com/v4/subscribers', {
+                                                method: 'POST',
+                                                headers: kitHeaders,
+                                                body: JSON.stringify({
+                                                    email_address: email,
+                                                    first_name: firstName || undefined,
+                                                    state: 'active',
+                                                }),
+                                            });
+                                            const subData = await subRes.json();
+                                            const subscriberId = subData?.subscriber?.id;
+
+                                            if (subscriberId) {
+                                                const tagId = '19624676'; // launch-pad-purchased
+                                                await fetch(`https://api.kit.com/v4/tags/${tagId}/subscribers`, {
+                                                    method: 'POST',
+                                                    headers: kitHeaders,
+                                                    body: JSON.stringify({ id: subscriberId }),
+                                                });
+                                                console.log(`Kit: tagged ${email} with launch-pad-purchased`);
+                                            } else {
+                                                console.error('Kit: failed to get subscriber ID for', email);
+                                            }
+                                        } catch (kitErr) {
+                                            console.error('Kit integration error (launch pad):', kitErr.message);
+                                        }
+                                    })();
+                                }
+                            }
+                            break;
+                        }
+                    } catch (err) {
+                        console.error('Error processing Launch Pad purchase:', err);
+                    }
+                }
+
                 // 3. Existing logic for Tools/Practice App subscriptions
                 if (session.subscription) {
                     const subscription = await getStripe().subscriptions.retrieve(session.subscription);
