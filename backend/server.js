@@ -115,6 +115,17 @@ app.get('/api/rss', async (req, res) => {
     }
 });
 
+// Global error handler — catches JSON parse errors, uncaught route errors, etc.
+// Without this, bad JSON bodies crash the entire process via PM2 restart.
+app.use((err, req, res, next) => {
+    if (err.type === 'entity.parse.failed') {
+        console.error(`JSON parse error from ${req.ip}: ${err.message}`);
+        return res.status(400).json({ error: 'Invalid JSON in request body' });
+    }
+    console.error('Unhandled Express error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+});
+
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
