@@ -575,6 +575,9 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
                                 await grantEntitlement(user.id, 'launch-pad', 'stripe', session.id).catch(e => {
                                     console.error('Entitlement grant error (launch-pad):', e.message);
                                 });
+                                await grantEntitlement(user.id, 'reddit-course', 'stripe', session.id).catch(e => {
+                                    console.error('Entitlement grant error (reddit-course via launch-pad):', e.message);
+                                });
 
                                 // Tag in Kit (ConvertKit)
                                 if (process.env.KIT_API_KEY) {
