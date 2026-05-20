@@ -10,6 +10,7 @@ const VALID_TOOLS = [
     'listening-lens',
     'side-effect-quests-v2',
     'sa-practice-kit-workbook',
+    'guided-100-days',
 ];
 
 /**

@@ -39,6 +39,8 @@ model User {
   plannerTasks         PlannerTask[]
   kitProgress          KitProgress[]
   entitlements         Entitlement[]
+  practiceEvents       PracticeEvent[]
+  quizResults          QuizResult[]
 
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
@@ -147,10 +149,13 @@ model QuizResult {
   scores    Json     // computed scores (total, sections, topics, categories)
   verdict   String?  // verdict text
   metadata  Json?    // any extra data (language for NLP quiz, etc.)
+  userId    String?  // optional -- links result to a user if authenticated
+  user      User?    @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
 
   @@index([quizName])
   @@index([createdAt])
+  @@index([userId])
 }
 
 model KitProgress {
@@ -196,4 +201,18 @@ model Entitlement {
   @@unique([userId, productKey])
   @@index([userId])
   @@index([productKey])
+}
+
+model PracticeEvent {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  tool      String   // 'afflictions-quiz', 'ego-quiz', 'meditation', 'guided-100-days', etc.
+  eventType String   // 'quiz_completed', 'session_logged', 'checkin', 'guide_step'
+  data      Json?    // tool-specific payload
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([userId, tool])
+  @@index([createdAt])
 }

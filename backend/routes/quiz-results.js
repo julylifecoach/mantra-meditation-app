@@ -2,10 +2,12 @@ const express = require('express');
 const router = express.Router();
 const prisma = require('../lib/prisma');
 const { authenticate } = require('../middleware/auth');
+const { optionalAuth } = require('../middleware/optionalAuth');
 
 // POST /api/quiz-results
-// Anonymous — stores quiz completion for statistical analysis
-router.post('/', async (req, res) => {
+// Optionally authenticated -- stores quiz completion for statistical analysis
+// If a valid JWT is present, links the result to the user account
+router.post('/', optionalAuth, async (req, res) => {
     try {
         const { quizName, answers, scores, factors, verdict, metadata } = req.body;
         const resolvedScores = scores || factors;
@@ -26,6 +28,7 @@ router.post('/', async (req, res) => {
                 scores: resolvedScores,
                 verdict: verdict || null,
                 metadata: metadata || null,
+                userId: req.userId || null,
             }
         });
 
