@@ -1,6 +1,7 @@
 const express = require('express');
 const prisma = require('../lib/prisma');
 const { authenticate } = require('../middleware/auth');
+const kitSync = require('../lib/kit-sync');
 
 const router = express.Router();
 
@@ -44,6 +45,13 @@ const MILESTONE_DEFS = [
     }},
     { key: '7_day_streak',     label: '7-Day Practice Streak',              check: (events) => computeStreak(events).longest >= 7 },
     { key: '30_day_streak',    label: '30-Day Practice Streak',             check: (events) => computeStreak(events).longest >= 30 },
+    { key: 'first_practice_tool', label: 'First Practice Tool Used', check: function(events) {
+        var kitTools = ['heart-opening-108', 'listening-lens', 'side-effect-quests', 'sa-practice-kit-workbook'];
+        return events.some(function(e) { return kitTools.indexOf(e.tool) !== -1; });
+    }},
+    { key: '100_day_complete', label: '100 Days of Practice Complete', check: function(events) {
+        return events.filter(function(e) { return e.tool === 'guided-100-days' && e.eventType === 'checkin'; }).length >= 100;
+    }},
 ];
 
 // ============================================================
@@ -90,6 +98,11 @@ router.post('/event', authenticate, async (req, res) => {
         });
 
         const milestone = detectNewMilestone(allEvents, event);
+
+        // Fire-and-forget Kit sync
+        kitSync.syncIfNeeded(req.userId).catch(function(err) {
+            console.error('[kit-sync] Background sync error:', err.message);
+        });
 
         res.status(201).json({
             id: event.id,
@@ -306,6 +319,21 @@ function findMilestoneAchievedAt(key, events) {
             }
             return null;
         }
+        case 'first_practice_tool': {
+            var kitTools = ['heart-opening-108', 'listening-lens', 'side-effect-quests', 'sa-practice-kit-workbook'];
+            var e = sorted.find(function(ev) { return kitTools.indexOf(ev.tool) !== -1; });
+            return e ? e.createdAt : null;
+        }
+        case '100_day_complete': {
+            var count = 0;
+            for (var i = 0; i < sorted.length; i++) {
+                if (sorted[i].tool === 'guided-100-days' && sorted[i].eventType === 'checkin') {
+                    count++;
+                    if (count >= 100) return sorted[i].createdAt;
+                }
+            }
+            return null;
+        }
         default:
             return sorted.length > 0 ? sorted[sorted.length - 1].createdAt : null;
     }
@@ -403,6 +431,41 @@ function computeInsights(events, quizResults) {
         });
     }
 
+    // Insight: Procrastination + Ego correlation
+    var procrastination = quizData['procrastination_type_v1'] || findEventData(events, 'procrastination-quiz');
+    if (procrastination && ego) {
+        var procType = (procrastination.data && procrastination.data.primary) || (procrastination.verdict);
+        var egoPattern = (ego.data && ego.data.primary) || (ego.verdict);
+        if (procType && egoPattern) {
+            insights.push({
+                type: 'root_pattern',
+                tools: ['procrastination-quiz', 'ego-quiz'],
+                message: 'Your procrastination type (' + procType + ') and ego pattern (' + egoPattern + ') often reinforce each other. Understanding one helps unlock the other.',
+            });
+        }
+    }
+
+    // Insight: Resilience + Meditation synergy
+    var resQuiz = quizData['resilience'] || findEventData(events, 'resilience-quiz');
+    if (resQuiz && meditations.length >= 3) {
+        insights.push({
+            type: 'growth_synergy',
+            tools: ['resilience-quiz', 'meditation'],
+            message: 'Your meditation practice directly strengthens the resilience factors you mapped. Consistent sitting builds the neural pathways that resilience depends on.',
+        });
+    }
+
+    // Insight: Perception Map + NLP Submodality awareness
+    var perceptionQuiz = quizData['perception_map_v1'] || findEventData(events, 'perception-map-quiz');
+    var nlpQuiz = quizData['nlp_submodality'] || findEventData(events, 'nlp-submodality-quiz');
+    if (perceptionQuiz && nlpQuiz) {
+        insights.push({
+            type: 'complementary_lenses',
+            tools: ['perception-map-quiz', 'nlp-submodality-quiz'],
+            message: 'Your Perception Map and NLP Submodality results are complementary lenses -- one maps how you see the world, the other maps how your senses process it. Together they reveal your full perceptual fingerprint.',
+        });
+    }
+
     return insights;
 }
 
@@ -446,6 +509,22 @@ function computeNextSteps(events) {
         steps.push({
             tool: 'coaching',
             reason: 'Your consistent practice shows real commitment. Working with a coach could help you go deeper with what is coming up.',
+        });
+    }
+
+    // SA Practice Kit suggestion
+    if (toolsUsed.has('social-anxiety-quiz') && !toolsUsed.has('sa-practice-kit-workbook')) {
+        steps.push({
+            tool: 'sa-practice-kit-workbook',
+            reason: 'You have identified your social anxiety pattern. The SA Practice Workbook turns that awareness into daily practice exercises.',
+        });
+    }
+
+    // Heart Opening after meditation
+    if (meditations.length >= 5 && !toolsUsed.has('heart-opening-108')) {
+        steps.push({
+            tool: 'heart-opening-108',
+            reason: 'With your established meditation practice, Heart Opening 108 can help you bring compassion and openness into your sits.',
         });
     }
 

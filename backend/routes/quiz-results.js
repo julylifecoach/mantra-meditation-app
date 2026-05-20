@@ -16,7 +16,7 @@ router.post('/', optionalAuth, async (req, res) => {
             return res.status(400).json({ error: 'quizName, answers, and scores (or factors) are required' });
         }
 
-        const allowedQuizzes = ['ego_check', 'resilience', 'nlp_submodality', 'social_anxiety_pattern_v3', 'procrastination_type_v1', 'perception_map_v1', 'reaction_mirror'];
+        const allowedQuizzes = ['ego_check', 'resilience', 'nlp_submodality', 'social_anxiety_pattern_v3', 'procrastination_type_v1', 'perception_map_v1', 'reaction_mirror', 'afflictions'];
         if (!allowedQuizzes.includes(quizName)) {
             return res.status(400).json({ error: `Invalid quizName. Must be one of: ${allowedQuizzes.join(', ')}` });
         }
