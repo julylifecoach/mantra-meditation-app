@@ -47,6 +47,7 @@ const apiLimiter = rateLimit({
 const allowedOrigins = [
     'https://practice.julylifecoach.com',
     'https://staging.practice.julylifecoach.com',
+    'https://here.julylifecoach.com',
     'https://tools.julylifecoach.com',
     'https://www.julylifecoach.com',
     'https://julylifecoach.com',
