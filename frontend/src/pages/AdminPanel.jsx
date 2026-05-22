@@ -28,7 +28,7 @@ export default function AdminPanel() {
 
     const fetchUsers = async () => {
         try {
-            const token = localStorage.getItem('aura_token');
+            const token = localStorage.getItem('july_token');
             const res = await fetch('/api/admin/users', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -49,7 +49,7 @@ export default function AdminPanel() {
         setPrimaryNotes(user.primaryNotes || '');
         setPlaylistUrl(user.playlistUrl || '');
         try {
-            const token = localStorage.getItem('aura_token');
+            const token = localStorage.getItem('july_token');
             const res = await fetch(`/api/admin/users/${user.id}/sessions`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -76,7 +76,7 @@ export default function AdminPanel() {
     const handleAddSession = async () => {
         if (!newSessionTopics.trim()) return;
         try {
-            const token = localStorage.getItem('aura_token');
+            const token = localStorage.getItem('july_token');
             const res = await fetch(`/api/admin/users/${selectedUser.id}/sessions`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -97,7 +97,7 @@ export default function AdminPanel() {
 
     const handleDeleteSession = async (sessionId) => {
         try {
-            const token = localStorage.getItem('aura_token');
+            const token = localStorage.getItem('july_token');
             await fetch(`/api/admin/sessions/${sessionId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -111,7 +111,7 @@ export default function AdminPanel() {
 
     const handleSaveSessionNotes = async (sessionId) => {
         try {
-            const token = localStorage.getItem('aura_token');
+            const token = localStorage.getItem('july_token');
             await fetch(`/api/admin/sessions/${sessionId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -126,7 +126,7 @@ export default function AdminPanel() {
     const handleSavePrimaryNotes = async () => {
         setSavingNotes(true);
         try {
-            const token = localStorage.getItem('aura_token');
+            const token = localStorage.getItem('july_token');
             await fetch(`/api/admin/users/${selectedUser.id}/notes`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -139,7 +139,7 @@ export default function AdminPanel() {
     const handleSavePlaylist = async () => {
         setSavingPlaylist(true);
         try {
-            const token = localStorage.getItem('aura_token');
+            const token = localStorage.getItem('july_token');
             await fetch(`/api/admin/users/${selectedUser.id}/playlist`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -151,7 +151,7 @@ export default function AdminPanel() {
 
     const toggleCanWrite = async (userId, currentValue) => {
         try {
-            const token = localStorage.getItem('aura_token');
+            const token = localStorage.getItem('july_token');
             const res = await fetch(`/api/admin/users/${userId}/canWrite`, {
                 method: 'PUT',
                 headers: {
@@ -172,7 +172,7 @@ export default function AdminPanel() {
 
     const togglePermission = async (user, permissionField) => {
         try {
-            const token = localStorage.getItem('aura_token');
+            const token = localStorage.getItem('july_token');
             const newPermissions = {
                 accessSelfCoaching: user.accessSelfCoaching,
                 accessContentCreator: user.accessContentCreator,

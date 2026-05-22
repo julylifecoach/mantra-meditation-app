@@ -10,7 +10,7 @@ export default function UserHub({ userProfile }) {
     useEffect(() => {
         if (userProfile?.accessClientPortal || userProfile?.accessBizCoach || userProfile?.role === 'admin') {
             setLoadingSessions(true);
-            const token = localStorage.getItem('aura_token');
+            const token = localStorage.getItem('july_token');
             fetch('/api/user/coaching-sessions', {
                 headers: { 'Authorization': `Bearer ${token}` }
             })

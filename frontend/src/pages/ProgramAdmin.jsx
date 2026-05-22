@@ -20,7 +20,7 @@ export default function ProgramAdmin() {
     const [enrollEmail, setEnrollEmail] = useState('');
     const [enrollError, setEnrollError] = useState('');
 
-    const token = localStorage.getItem('aura_token');
+    const token = localStorage.getItem('july_token');
     const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
 
     useEffect(() => { fetchPrograms(); }, []);

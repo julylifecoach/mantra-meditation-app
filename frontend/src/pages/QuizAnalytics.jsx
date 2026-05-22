@@ -20,7 +20,7 @@ export default function QuizAnalytics() {
     const [error, setError] = useState(null);
     const [expandedRow, setExpandedRow] = useState(null);
 
-    const token = localStorage.getItem('aura_token');
+    const token = localStorage.getItem('july_token');
 
     const fetchData = async (quizName) => {
         setLoading(true);

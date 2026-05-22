@@ -126,7 +126,7 @@ function App() {
 
   useEffect(() => {
     const savedUser = localStorage.getItem('aura_user');
-    const savedToken = localStorage.getItem('aura_token');
+    const savedToken = localStorage.getItem('july_token');
 
     if (savedUser && savedToken) {
       // Optimistically show the user while we validate
@@ -143,7 +143,7 @@ function App() {
           // Token is invalid or expired — auto-logout
           console.warn('Stored token is invalid, clearing session.');
           localStorage.removeItem('aura_user');
-          localStorage.removeItem('aura_token');
+          localStorage.removeItem('july_token');
           localStorage.removeItem('aura_daily_mantra');
           setIsAuthenticated(false);
           setUserProfile(null);
@@ -202,7 +202,7 @@ function App() {
 
     // Try to persist to backend
     try {
-      const token = localStorage.getItem('aura_token');
+      const token = localStorage.getItem('july_token');
       if (token) {
         await fetch('/api/user/nickname', {
           method: 'PUT',
@@ -217,7 +217,7 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('aura_user');
-    localStorage.removeItem('aura_token');
+    localStorage.removeItem('july_token');
     localStorage.removeItem('aura_daily_mantra');
     setIsAuthenticated(false);
     setUserProfile(null);
@@ -234,7 +234,7 @@ function App() {
       });
       if (res.ok) {
         const data = await res.json();
-        localStorage.setItem('aura_token', data.token);
+        localStorage.setItem('july_token', data.token);
         localStorage.setItem('aura_user', JSON.stringify(data.user));
         // Check for learn portal redirect
         const redirectUrl = getAuthRedirect();
@@ -466,7 +466,7 @@ function App() {
                     if (!res.ok) {
                       setAuthError(data.error || 'Authentication failed');
                     } else {
-                      localStorage.setItem('aura_token', data.token);
+                      localStorage.setItem('july_token', data.token);
                       localStorage.setItem('aura_user', JSON.stringify(data.user));
                       // Check for learn portal redirect
                       const redirectUrl = getAuthRedirect();

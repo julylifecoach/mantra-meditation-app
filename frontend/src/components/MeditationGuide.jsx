@@ -250,7 +250,7 @@ export default function MeditationGuide({ beginnerMode }) {
         localStorage.setItem('aura_reflections', JSON.stringify(updatedHistory));
 
         try {
-            const token = localStorage.getItem('aura_token');
+            const token = localStorage.getItem('july_token');
             if (token) {
                 await fetch('/api/reflections', {
                     method: 'POST',

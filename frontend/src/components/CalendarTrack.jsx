@@ -10,7 +10,7 @@ export default function CalendarTrack({ beginnerMode }) {
         // Load personal history from backend (synced across devices)
         const fetchMyReflections = async () => {
             try {
-                const token = localStorage.getItem('aura_token');
+                const token = localStorage.getItem('july_token');
                 if (token) {
                     const res = await fetch('/api/reflections/me', {
                         headers: { 'Authorization': `Bearer ${token}` }

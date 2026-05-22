@@ -96,7 +96,7 @@ export default function PublicBoard({ beginnerMode, isAdmin }) {
         setReflections([newEntry, ...reflections]);
 
         try {
-            const token = localStorage.getItem('aura_token');
+            const token = localStorage.getItem('july_token');
             if (token) {
                 await fetch('/api/reflections', {
                     method: 'POST',

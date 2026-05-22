@@ -12,7 +12,7 @@ export default function ConsentModal({ onComplete }) {
         setError('');
 
         try {
-            const token = localStorage.getItem('aura_token');
+            const token = localStorage.getItem('july_token');
             const res = await fetch('/api/user/consent', {
                 method: 'PUT',
                 headers: {

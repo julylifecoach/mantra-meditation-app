@@ -10,7 +10,7 @@ export default function SessionView({ userProfile }) {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const token = localStorage.getItem('aura_token');
+        const token = localStorage.getItem('july_token');
         fetch(`/api/user/coaching-sessions/${id}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         })

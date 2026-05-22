@@ -32,7 +32,7 @@ export default function BizCoachHome({ userProfile }) {
 
     useEffect(() => {
         if (!hasAccess) return;
-        const token = localStorage.getItem('aura_token');
+        const token = localStorage.getItem('july_token');
         fetch(`/api/youtube/playlist/${PLAYLIST_ID}`, {
             headers: token ? { 'Authorization': `Bearer ${token}` } : {}
         })

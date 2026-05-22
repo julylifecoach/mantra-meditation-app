@@ -51,7 +51,7 @@ export default function Dashboard() {
 
         // 3. Attempt backend save -- warn user if it fails
         try {
-            const token = localStorage.getItem('aura_token');
+            const token = localStorage.getItem('july_token');
             if (token) {
                 const res = await fetch('/api/reflections', {
                     method: 'POST',

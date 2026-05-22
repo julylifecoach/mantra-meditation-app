@@ -86,7 +86,7 @@ export default function ProgramPage({ userProfile }) {
     const [watched, setWatchedState] = useState(getWatched());
 
     useEffect(() => {
-        const token = localStorage.getItem('aura_token');
+        const token = localStorage.getItem('july_token');
         fetch(`/api/programs/${slug}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         })
@@ -104,7 +104,7 @@ export default function ProgramPage({ userProfile }) {
     useEffect(() => {
         if (tab === 'recordings' && program?.playlistId && videos.length === 0) {
             setVideosLoading(true);
-            const token = localStorage.getItem('aura_token');
+            const token = localStorage.getItem('july_token');
             const plId = extractPlaylistId(program.playlistId);
             fetch(`/api/youtube/playlist/${plId}`, {
                 headers: token ? { 'Authorization': `Bearer ${token}` } : {}
