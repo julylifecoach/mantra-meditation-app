@@ -13,10 +13,14 @@ const optionalAuth = (req, res, next) => {
     req.userId = null;
     req.userRole = null;
 
+    // Check Authorization header first, then fall back to cookie
     const authHeader = req.headers.authorization;
-    if (!authHeader) return next();
+    let token = authHeader ? authHeader.split(' ')[1] : null;
 
-    const token = authHeader.split(' ')[1];
+    if (!token && req.cookies && req.cookies.july_token) {
+        token = req.cookies.july_token;
+    }
+
     if (!token) return next();
 
     try {

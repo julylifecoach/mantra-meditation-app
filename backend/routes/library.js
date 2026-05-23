@@ -7,15 +7,173 @@
  */
 const express = require('express');
 const nodemailer = require('nodemailer');
+const { optionalAuth } = require('../middleware/optionalAuth');
+const prisma = require('../lib/prisma');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
 
 const router = express.Router();
 
 // Practice Library product ID in Stripe
 const LIBRARY_PRODUCT_ID = 'prod_ULOcDYnJ07Y9ZH';
 const ACCESS_KEY = 'july-library-2026';
-const LIBRARY_URL = 'https://library.julylifecoach.com';
+const LIBRARY_URL = 'https://here.julylifecoach.com/library/';
+const FREE_READ_LIMIT = 5;
 
+// Load paid articles into memory at startup
+let paidArticles = {};
+try {
+    const paidPath = path.join(__dirname, '../../frontend/dist/library-paid.json');
+    // Try dist first, then public
+    let rawData;
+    if (fs.existsSync(paidPath)) {
+        rawData = fs.readFileSync(paidPath, 'utf-8');
+    } else {
+        const altPath = path.join(__dirname, '../../frontend/public/library-paid.json');
+        rawData = fs.readFileSync(altPath, 'utf-8');
+    }
+    const data = JSON.parse(rawData);
+    if (data.items) {
+        data.items.forEach(item => {
+            paidArticles[item.id] = item;
+        });
+    }
+    console.log(`[Library] Loaded ${Object.keys(paidArticles).length} paid articles`);
+} catch (err) {
+    console.warn('[Library] Could not load library-paid.json:', err.message);
+    // Try loading from the hub directory (VPS layout)
+    try {
+        const hubPath = '/home/billy/july-platform/hub/library/library-paid.json';
+        if (fs.existsSync(hubPath)) {
+            const data = JSON.parse(fs.readFileSync(hubPath, 'utf-8'));
+            if (data.items) {
+                data.items.forEach(item => { paidArticles[item.id] = item; });
+            }
+            console.log(`[Library] Loaded ${Object.keys(paidArticles).length} paid articles from hub`);
+        }
+    } catch (e) {
+        console.warn('[Library] Could not load from hub either:', e.message);
+    }
+}
 
+// Helper: hash IP for anonymous tracking
+function hashIp(ip) {
+    return crypto.createHash('sha256').update(ip || 'unknown').digest('hex').slice(0, 32);
+}
+
+// GET /api/library/:id -- Serve individual article content with gating
+router.get('/:id', optionalAuth, async (req, res) => {
+    const { id } = req.params;
+    const accessKey = req.query.key;
+
+    // Find article in loaded data
+    const article = paidArticles[id];
+    if (!article) {
+        return res.status(404).json({ error: 'Article not found' });
+    }
+
+    // Access key bypass
+    if (accessKey === ACCESS_KEY) {
+        return res.json({ article, access: 'key', gated: false });
+    }
+
+    // Check membership entitlement for logged-in users
+    if (req.userId) {
+        try {
+            const ent = await prisma.entitlement.findFirst({
+                where: {
+                    userId: req.userId,
+                    productKey: 'here-membership',
+                    active: true,
+                    OR: [
+                        { expiresAt: null },
+                        { expiresAt: { gt: new Date() } },
+                    ],
+                },
+            });
+            if (ent) {
+                return res.json({ article, access: 'member', gated: false });
+            }
+        } catch (err) {
+            console.error('[Library] Error checking entitlement:', err.message);
+        }
+    }
+
+    // Free-read tracking
+    // Use IP hash for both anonymous and logged-in non-members
+    const ipHash = hashIp(req.ip);
+    const trackingKey = req.userId || `anon_${ipHash}`;
+
+    try {
+        // Count unique articles read by this user/IP
+        const readArticles = await prisma.practiceEvent.findMany({
+            where: {
+                tool: 'library',
+                eventType: 'article_read',
+                userId: req.userId || `anon_${ipHash}`,
+            },
+            select: { data: true },
+        });
+
+        // Extract unique article IDs from read events
+        const readIds = new Set();
+        readArticles.forEach(e => {
+            try {
+                const d = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+                if (d && d.articleId) readIds.add(d.articleId);
+            } catch (_) {}
+        });
+
+        // If this article was already read, don't count it again
+        if (readIds.has(id)) {
+            return res.json({ article, access: 'free', gated: false });
+        }
+
+        const readCount = readIds.size;
+
+        if (readCount < FREE_READ_LIMIT) {
+            // Log the read
+            try {
+                await prisma.practiceEvent.create({
+                    data: {
+                        userId: req.userId || `anon_${ipHash}`,
+                        tool: 'library',
+                        eventType: 'article_read',
+                        data: JSON.stringify({ articleId: id }),
+                    },
+                });
+            } catch (logErr) {
+                console.error('[Library] Error logging read:', logErr.message);
+            }
+            return res.json({
+                article,
+                access: 'free',
+                gated: false,
+                freeReadsRemaining: FREE_READ_LIMIT - readCount - 1,
+            });
+        }
+
+        // Gated -- return preview only
+        const preview = {
+            id: article.id,
+            title: article.title,
+            source: article.source,
+            theme: article.theme,
+            preview: article.body ? article.body.slice(0, 300) + '...' : '',
+        };
+        return res.json({
+            article: preview,
+            access: 'gated',
+            gated: true,
+            freeReadsRemaining: 0,
+        });
+    } catch (err) {
+        console.error('[Library] Error in free-read tracking:', err.message);
+        // On error, return gated for safety
+        return res.status(500).json({ error: 'Internal error' });
+    }
+});
 
 // Lazy-init Stripe
 let stripe;
