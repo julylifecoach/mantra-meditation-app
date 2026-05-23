@@ -217,6 +217,27 @@ router.get('/me', authenticate, async (req, res) => {
     }
 });
 
+// ============ Update Profile ============
+router.patch('/me', authenticate, async (req, res) => {
+    try {
+        const { displayName } = req.body;
+        if (!displayName || !displayName.trim()) {
+            return res.status(400).json({ error: 'Display name is required' });
+        }
+        if (displayName.trim().length > 50) {
+            return res.status(400).json({ error: 'Display name must be 50 characters or less' });
+        }
+        const user = await prisma.user.update({
+            where: { id: req.userId },
+            data: { displayName: displayName.trim() },
+        });
+        res.json({ user: sanitizeUser(user) });
+    } catch (error) {
+        console.error("Update profile error:", error);
+        res.status(500).json({ error: "Failed to update profile" });
+    }
+});
+
 // ============ Logout ============
 router.post('/logout', (req, res) => {
     res.clearCookie('july_token', {
