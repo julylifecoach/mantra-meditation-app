@@ -217,4 +217,16 @@ router.get('/me', authenticate, async (req, res) => {
     }
 });
 
+// ============ Logout ============
+router.post('/logout', (req, res) => {
+    res.clearCookie('july_token', {
+        domain: '.julylifecoach.com',
+        path: '/',
+        httpOnly: true,
+        secure: true,
+        sameSite: 'Lax',
+    });
+    res.json({ ok: true });
+});
+
 module.exports = router;
