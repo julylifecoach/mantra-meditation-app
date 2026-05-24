@@ -32,9 +32,9 @@ function Navigation({ userProfile }) {
   const hasClientAccess = userProfile?.accessClientPortal || userProfile?.accessBizCoach || userProfile?.accessContentCreator || userProfile?.accessSelfCoaching || userProfile?.role === 'admin';
 
   const navItems = [
-    { path: '/', label: 'Mantra', icon: <Compass size={20} /> },
-    { path: '/meditate', label: 'Practice', icon: <Check size={20} /> },
-    { path: '/100-days', label: '100 Days', icon: <BookOpen size={20} /> },
+    { path: 'https://here.julylifecoach.com/', label: 'Experiences', icon: <Compass size={20} />, external: true },
+    { path: '/', label: 'Mantra', icon: <Check size={20} /> },
+    { path: '/meditate', label: 'Practice', icon: <BookOpen size={20} /> },
     { path: '/track', label: 'Track', icon: <Calendar size={20} /> },
     ...(hasClientAccess ? [{ path: '/hub', label: 'Hub', icon: <Users size={20} /> }] : []),
   ];
@@ -125,6 +125,17 @@ function App() {
   };
 
   useEffect(() => {
+    // Accept cross-subdomain auth token from URL
+    const params = new URLSearchParams(window.location.search);
+    const urlToken = params.get('auth_token');
+    if (urlToken && !localStorage.getItem('july_token')) {
+      localStorage.setItem('july_token', urlToken);
+      // Clean the URL
+      params.delete('auth_token');
+      const cleanUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+      window.history.replaceState({}, '', cleanUrl);
+    }
+
     const savedUser = localStorage.getItem('aura_user');
     const savedToken = localStorage.getItem('july_token');
 
