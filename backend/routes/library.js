@@ -6,7 +6,7 @@
  * sends them an email with the access key.
  */
 const express = require('express');
-const nodemailer = require('nodemailer');
+const transporter = require('../lib/mailer');
 const { optionalAuth } = require('../middleware/optionalAuth');
 const prisma = require('../lib/prisma');
 const fs = require('fs');
@@ -44,7 +44,7 @@ try {
     console.warn('[Library] Could not load library-paid.json:', err.message);
     // Try loading from the hub directory (VPS layout)
     try {
-        const hubPath = '/home/billy/july-platform/hub/library/library-paid.json';
+        const hubPath = process.env.LIBRARY_PAID_PATH || '/home/billy/july-platform/hub/library/library-paid.json';
         if (fs.existsSync(hubPath)) {
             const data = JSON.parse(fs.readFileSync(hubPath, 'utf-8'));
             if (data.items) {
@@ -175,14 +175,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
     }
 });
 
-// Lazy-init Stripe
-let stripe;
-function getStripe() {
-    if (!stripe) {
-        stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-    }
-    return stripe;
-}
+const getStripe = require('../lib/stripe');
 
 // POST /api/library/webhook
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
@@ -233,13 +226,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 
     // Send the access key email
     try {
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS,
-            },
-        });
+
 
         const planType = session.mode === 'subscription' ? 'subscription' : 'purchase';
 

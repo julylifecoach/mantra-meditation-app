@@ -1,4 +1,5 @@
 import React from 'react';
+import ErrorBoundary from './ErrorBoundary';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 import { Check, Compass, Calendar, Users, BookOpen } from 'lucide-react';
@@ -119,7 +120,7 @@ function App() {
         if (url.hostname.endsWith('.julylifecoach.com') || url.hostname === 'julylifecoach.com') {
           return redirect;
         }
-      } catch (e) {}
+      } catch (e) { console.warn('Auth redirect URL parse error:', e.message); }
     }
     return null;
   };
@@ -408,6 +409,7 @@ function App() {
 
         <main className="main-content">
           {isAuthenticated ? (
+            <ErrorBoundary>
             <Routes>
 
               <Route path="/" element={<MantraQuiz beginnerMode={beginnerMode} />} />
@@ -429,6 +431,7 @@ function App() {
               {isAdmin && <Route path="/admin/programs" element={<ProgramAdmin />} />}
               {isAdmin && <Route path="/admin/quiz-analytics" element={<QuizAnalytics />} />}
             </Routes>
+            </ErrorBoundary>
           ) : (
             <div style={{ textAlign: 'center', marginTop: '6rem', animation: 'fadeIn 1s ease-out' }}>
               <h2 style={{ fontSize: '3rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>Welcome to Practice</h2>

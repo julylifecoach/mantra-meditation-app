@@ -2,17 +2,10 @@ const express = require('express');
 const prisma = require('../lib/prisma');
 const { authenticate } = require('../middleware/auth');
 const { grantEntitlement, PRODUCT_KEY_MAP } = require('./entitlements');
+const getStripe = require('../lib/stripe');
+const transporter = require('../lib/mailer');
 
 const router = express.Router();
-
-// Stripe is initialized lazily to avoid issues if key isn't set
-let stripe;
-function getStripe() {
-    if (!stripe) {
-        stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-    }
-    return stripe;
-}
 
 // Price IDs — set via env vars after creating products in Stripe
 const PRICE_MONTHLY = process.env.STRIPE_PRICE_MONTHLY;
@@ -174,14 +167,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
                             });
 
                             // Send Welcome Email
-                            const nodemailer = require('nodemailer');
-                            const transporter = nodemailer.createTransport({
-                                service: 'gmail',
-                                auth: {
-                                    user: process.env.SMTP_USER,
-                                    pass: process.env.SMTP_PASS
-                                }
-                            });
+
 
                             const portalLink = program === 'bizcoach'
                                 ? 'https://practice.julylifecoach.com/bizcoach'
@@ -246,14 +232,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
                                 }
 
                                 // Send welcome email with account setup link
-                                const nodemailer = require('nodemailer');
-                                const transporter = nodemailer.createTransport({
-                                    service: 'gmail',
-                                    auth: {
-                                        user: process.env.SMTP_USER,
-                                        pass: process.env.SMTP_PASS,
-                                    },
-                                });
+
 
                                 await transporter.sendMail({
                                     from: 'billy@julylifecoach.com',
@@ -387,14 +366,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
                             const email = session.customer_details?.email || session.customer_email;
                             if (email) {
                                 // Send welcome email with course link
-                                const nodemailer = require('nodemailer');
-                                const transporter = nodemailer.createTransport({
-                                    service: 'gmail',
-                                    auth: {
-                                        user: process.env.SMTP_USER,
-                                        pass: process.env.SMTP_PASS,
-                                    },
-                                });
+
 
                                 await transporter.sendMail({
                                     from: 'billy@julylifecoach.com',
@@ -528,14 +500,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
                             const email = session.customer_details?.email || session.customer_email;
                             if (email) {
                                 // Send welcome email with course link
-                                const nodemailer = require('nodemailer');
-                                const transporter = nodemailer.createTransport({
-                                    service: 'gmail',
-                                    auth: {
-                                        user: process.env.SMTP_USER,
-                                        pass: process.env.SMTP_PASS,
-                                    },
-                                });
+
 
                                 await transporter.sendMail({
                                     from: 'billy@julylifecoach.com',
@@ -686,6 +651,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
         }
     } catch (error) {
         console.error('Webhook processing error:', error);
+        return res.status(500).json({ error: 'Webhook processing failed' });
     }
 
     res.json({ received: true });

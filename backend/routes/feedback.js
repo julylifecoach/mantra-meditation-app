@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const nodemailer = require('nodemailer');
+const transporter = require('../lib/mailer');
 
 // POST /api/feedback
 router.post('/', async (req, res) => {
@@ -11,13 +11,7 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ error: 'Message and appSource are required' });
         }
 
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS
-            }
-        });
+
 
         const replyToText = replyTo ? `<p><strong>Reply-To:</strong> ${replyTo}</p>` : '<p><strong>Reply-To:</strong> Not provided</p>';
 
@@ -45,6 +39,7 @@ router.post('/', async (req, res) => {
             const logEntry = `\n[${new Date().toISOString()}] Feedback from ${appSource}\nReply-To: ${replyTo || 'None'}\nMessage:\n${message}\n------------------------\n`;
             fs.appendFileSync(path.join(__dirname, '../../feedback.log'), logEntry);
             console.log('Feedback saved to local log file as fallback.');
+            return res.status(500).json({ success: false, message: 'Email delivery failed; feedback saved to server log' });
         }
 
         res.status(200).json({ success: true, message: 'Feedback sent successfully' });
