@@ -52,7 +52,7 @@ const allowedOrigins = [
     'https://www.julylifecoach.com',
     'https://julylifecoach.com',
     'https://french.julylifecoach.com',
-    'https://resources.julylifecoach.com',
+    'https://here.julylifecoach.com',
     'https://shop.julylifecoach.com',
     'https://learn.julylifecoach.com',
     'http://localhost:5173',

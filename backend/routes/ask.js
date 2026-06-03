@@ -82,7 +82,7 @@ router.post('/', async (req, res) => {
                     <h3>Question:</h3>
                     <p style="font-size: 16px; line-height: 1.6;">${question.replace(/\n/g, '<br>')}</p>
                     <hr />
-                    <p><a href="https://resources.julylifecoach.com/ask/admin.html?id=${entry.id}">Answer this question →</a></p>
+                    <p><a href="https://here.julylifecoach.com/ask/admin.html?id=${entry.id}">Answer this question →</a></p>
                     ${subscribeToKit ? '<p style="color: #888;">✅ They opted in to the newsletter</p>' : ''}
                 `,
             });
@@ -218,7 +218,7 @@ router.put('/:id', requireAdmin, async (req, res) => {
                             <hr style="margin: 2rem 0; border: none; border-top: 1px solid #eee;" />
                             <p style="font-size: 0.9rem; color: #888;">
                                 This response is also published at 
-                                <a href="https://resources.julylifecoach.com/ask/" style="color: #C27C5A;">Ask Billy</a> 
+                                <a href="https://here.julylifecoach.com/ask/" style="color: #C27C5A;">Ask Billy</a> 
                                 for others to learn from.
                             </p>
                             <p style="font-size: 0.85rem; color: #aaa; margin-top: 1rem;">

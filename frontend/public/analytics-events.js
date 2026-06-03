@@ -93,7 +93,7 @@
         }
 
         // Buddhist practice guide CTA
-        if (href.includes('resources.julylifecoach.com') || href.includes('/buddhist-practice-guide.html') || link.classList.contains('cta-button')) {
+        if (href.includes('here.julylifecoach.com') || href.includes('/buddhist-practice-guide.html') || link.classList.contains('cta-button')) {
             track('guide_cta_click', {
                 link_url: href,
                 link_text: text,
