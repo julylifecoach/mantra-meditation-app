@@ -634,6 +634,55 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
                 break;
             }
 
+            case 'customer.subscription.created': {
+                // Handle new Monthly Coaching subscriptions
+                const newSub = event.data.object;
+                const priceId = newSub.items?.data?.[0]?.price?.id;
+                // Monthly Coaching ($500/mo) price
+                if (priceId === 'price_1TeORZEj0kmKnHs3SS7RKxO9') {
+                    try {
+                        const customerObj = await getStripe().customers.retrieve(newSub.customer);
+                        const subEmail = customerObj.email;
+                        if (subEmail && process.env.KIT_API_KEY) {
+                            const kitHeaders = {
+                                'X-Kit-Api-Key': process.env.KIT_API_KEY,
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                            };
+
+                            // Create/update subscriber
+                            const customerName = customerObj.name || '';
+                            const firstName = customerName.split(' ')[0] || '';
+                            const subRes = await fetch('https://api.kit.com/v4/subscribers', {
+                                method: 'POST',
+                                headers: kitHeaders,
+                                body: JSON.stringify({
+                                    email_address: subEmail,
+                                    first_name: firstName || undefined,
+                                    state: 'active',
+                                }),
+                            });
+                            const subData = await subRes.json();
+                            const subscriberId = subData?.subscriber?.id;
+
+                            if (subscriberId) {
+                                // Tag with monthly-coaching-subscriber
+                                const tagId = '20051607';
+                                await fetch(`https://api.kit.com/v4/tags/${tagId}/subscribers`, {
+                                    method: 'POST',
+                                    headers: kitHeaders,
+                                    body: JSON.stringify({ id: subscriberId }),
+                                });
+                                console.log(`Kit: tagged ${subEmail} with monthly-coaching-subscriber`);
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Error processing coaching subscription:', err);
+                    }
+                }
+                break;
+            }
+
             case 'customer.subscription.deleted': {
                 const subscription = event.data.object;
                 const existing = await prisma.subscription.findUnique({
