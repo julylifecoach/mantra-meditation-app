@@ -20,6 +20,9 @@ const ALLOWED_TAG_IDS = new Set([
     19092890, // SA quiz — ragnaros
     19641397, // stripe-clicked-pk — abandoned checkout intent
     19775566, // calibration-lead — The Calibration ad funnel
+    19869734, // AI Prompt Freebie — freebie email captured
+    19869735, // AI Prompt Vault Purchased — vault purchased
+    20027127, // stripe-clicked-vault — clicked Stripe on vault page
 ]);
 
 router.post('/', async (req, res) => {
