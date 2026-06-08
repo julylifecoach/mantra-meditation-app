@@ -10,20 +10,7 @@
 
 const express = require('express');
 const router = express.Router();
-
-const ALLOWED_TAG_IDS = new Set([
-    19092885, // SA quiz — general tag
-    19092886, // SA quiz — doom
-    19092887, // SA quiz — leeroy
-    19092888, // SA quiz — panda
-    19092889, // SA quiz — ogre
-    19092890, // SA quiz — ragnaros
-    19641397, // stripe-clicked-pk — abandoned checkout intent
-    19775566, // calibration-lead — The Calibration ad funnel
-    19869734, // AI Prompt Freebie — freebie email captured
-    19869735, // AI Prompt Vault Purchased — vault purchased
-    20027127, // stripe-clicked-vault — clicked Stripe on vault page
-]);
+const { tagSubscriber, addToSequence } = require('../lib/kit-subscriber');
 
 router.post('/', async (req, res) => {
     try {
@@ -37,13 +24,6 @@ router.post('/', async (req, res) => {
         if (!secret) {
             console.error('KIT_API_SECRET not configured in .env');
             return res.status(500).json({ error: 'Server configuration error' });
-        }
-
-        // Validate all tag IDs are in the allowlist
-        for (const id of tagIds) {
-            if (!ALLOWED_TAG_IDS.has(id)) {
-                return res.status(403).json({ error: `Tag ID ${id} not allowed` });
-            }
         }
 
         // Apply each tag via Kit API v3
@@ -88,12 +68,6 @@ router.post('/by-subscriber-id', async (req, res) => {
             return res.status(500).json({ error: 'Server configuration error' });
         }
 
-        for (const id of tagIds) {
-            if (!ALLOWED_TAG_IDS.has(id)) {
-                return res.status(403).json({ error: `Tag ID ${id} not allowed` });
-            }
-        }
-
         // Look up subscriber email from Kit
         const subRes = await fetch(`https://api.convertkit.com/v3/subscribers/${subscriberId}?api_secret=${secret}`);
         if (!subRes.ok) {
@@ -124,6 +98,35 @@ router.post('/by-subscriber-id', async (req, res) => {
     } catch (error) {
         console.error('Kit tag by-subscriber-id error:', error);
         res.status(500).json({ error: 'Failed to apply tags' });
+    }
+});
+
+/**
+ * POST /api/kit-tag/with-sequence
+ * Body: { email: string, tagIds: number[], sequenceId?: number }
+ * 
+ * Applies tags and optionally adds subscriber to a sequence.
+ * Uses the shared kit-subscriber helpers.
+ */
+router.post('/with-sequence', async (req, res) => {
+    try {
+        const { email, tagIds, sequenceId } = req.body;
+
+        if (!email || !email.includes('@') || !Array.isArray(tagIds) || tagIds.length === 0) {
+            return res.status(400).json({ error: 'Invalid request: email and tagIds[] required' });
+        }
+
+        // Fire both in parallel
+        const promises = [tagSubscriber(email, tagIds)];
+        if (sequenceId) {
+            promises.push(addToSequence(email, sequenceId));
+        }
+        await Promise.allSettled(promises);
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Kit tag with-sequence error:', error);
+        res.status(500).json({ error: 'Failed to apply tags/sequence' });
     }
 });
 

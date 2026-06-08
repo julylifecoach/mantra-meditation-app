@@ -5,6 +5,8 @@ const bcrypt = require('bcrypt');
 const prisma = require('../lib/prisma');
 const { authenticate } = require('../middleware/auth');
 const { grantFreeEntitlements } = require('./entitlements');
+const { ensureKitSubscriber, tagSubscriber, addToSequence } = require('../lib/kit-subscriber');
+
 
 const router = express.Router();
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -54,6 +56,7 @@ router.post('/google', async (req, res) => {
         // Find by googleId first, then by email (link accounts)
         let user = await prisma.user.findUnique({ where: { googleId } });
 
+        let isNewUser = false;
         if (!user) {
             // Check if email already exists (email/password user signing in with Google)
             user = await prisma.user.findUnique({ where: { email } });
@@ -67,6 +70,7 @@ router.post('/google', async (req, res) => {
                 user = await prisma.user.create({
                     data: { googleId, email, displayName },
                 });
+                isNewUser = true;
             }
         }
 
@@ -75,6 +79,16 @@ router.post('/google', async (req, res) => {
         // Grant free entitlements for new users
         grantFreeEntitlements(user.id).catch(() => {});
         res.json({ token: sessionToken, user: sanitizeUser(user) });
+
+        // Kit integration -- fire-and-forget
+        if (isNewUser) {
+            ensureKitSubscriber(email, displayName).catch(() => {});
+            tagSubscriber(email, [20154930]).catch(() => {});
+            addToSequence(email, 2785516).catch(() => {});
+        } else {
+            ensureKitSubscriber(email).catch(() => {});
+            tagSubscriber(email, [20154930]).catch(() => {});
+        }
     } catch (error) {
         console.error("Google Auth Error:", error);
         res.status(401).json({ error: "Authentication failed" });
@@ -115,6 +129,12 @@ router.post('/register', async (req, res) => {
                 const token = createToken(user);
                 setCrossDomainCookie(res, token);
                 grantFreeEntitlements(user.id).catch(() => {});
+
+                // Kit integration -- fire-and-forget (completing registration)
+                ensureKitSubscriber(email, displayName || email.split('@')[0]).catch(() => {});
+                tagSubscriber(email, [20154930]).catch(() => {});
+                addToSequence(email, 2785516).catch(() => {});
+
                 return res.json({ token, user: sanitizeUser(user) });
             }
             return res.status(409).json({ error: 'An account with this email already exists' });
@@ -137,6 +157,11 @@ router.post('/register', async (req, res) => {
         setCrossDomainCookie(res, token);
         grantFreeEntitlements(user.id).catch(() => {});
         res.json({ token, user: sanitizeUser(user) });
+
+        // Kit integration -- fire-and-forget (new registration)
+        ensureKitSubscriber(email, displayName || email.split('@')[0]).catch(() => {});
+        tagSubscriber(email, [20154930]).catch(() => {});
+        addToSequence(email, 2785516).catch(() => {});
     } catch (error) {
         console.error("Register Error:", error);
         res.status(500).json({ error: "Registration failed" });
@@ -165,6 +190,10 @@ router.post('/login', async (req, res) => {
         const token = createToken(user);
         setCrossDomainCookie(res, token);
         res.json({ token, user: sanitizeUser(user) });
+
+        // Kit integration -- fire-and-forget (login backfill)
+        ensureKitSubscriber(email).catch(() => {});
+        tagSubscriber(email, [20154930]).catch(() => {});
     } catch (error) {
         console.error("Login Error:", error);
         res.status(500).json({ error: "Login failed" });
