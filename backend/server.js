@@ -23,6 +23,7 @@ const kitTagRoutes = require('./routes/kit-tag');
 const entitlementRoutes = require('./routes/entitlements');
 const practiceRoutes = require('./routes/practice');
 const metaCapiRoutes = require('./routes/meta-capi');
+const patternSubmissionRoutes = require('./routes/pattern-submission');
 
 const app = express();
 app.set('trust proxy', 1); // Trust first proxy (Nginx)
@@ -99,6 +100,7 @@ app.use('/api/practice', apiLimiter, practiceRoutes);
 app.use('/api/library', libraryRoutes);
 app.use('/api/entitlements', apiLimiter, entitlementRoutes);
 app.use('/api/meta-capi', apiLimiter, metaCapiRoutes);
+app.use('/api/pattern-submission', apiLimiter, patternSubmissionRoutes);
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'Practice Backend is running!' });
